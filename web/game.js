@@ -66,6 +66,7 @@ let audioMaster = null;
 const urlParams = new URLSearchParams(window.location.search);
 const apiParam = urlParams.get("api");
 const wsParam = urlParams.get("ws");
+const AUTO_START = urlParams.get("autostart") === "1";
 if (apiParam) localStorage.setItem("spnet_api", apiParam);
 if (wsParam) localStorage.setItem("spnet_ws", wsParam);
 
@@ -2089,6 +2090,12 @@ async function initUI() {
   updateDailyUI();
   renderStore();
   if (authToken) await tryCloudProfile();
+  if (AUTO_START) {
+    if (mpToggle) mpToggle.checked = false;
+    setTimeout(() => {
+      if (!GAME.running) startGame();
+    }, 200);
+  }
 }
 
 resize();
