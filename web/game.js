@@ -62,7 +62,9 @@ let dpr = Math.max(1, window.devicePixelRatio || 1);
 let audioCtx = null;
 let audioMaster = null;
 
-const API_BASE = localStorage.getItem("spnet_api") || "http://localhost:8787";
+const IS_LOCAL = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+const DEFAULT_API = IS_LOCAL ? "http://localhost:8787" : `${window.location.protocol}//${window.location.host}`;
+const API_BASE = localStorage.getItem("spnet_api") || DEFAULT_API;
 let authToken = localStorage.getItem("spnet_token") || "";
 let onlineMode = false;
 
@@ -202,6 +204,8 @@ const GAME = {
   trait: "swift",
 };
 
+const wsProto = window.location.protocol === "https:" ? "wss" : "ws";
+const DEFAULT_WS = IS_LOCAL ? "ws://localhost:8788" : `${wsProto}://${window.location.host}/ws`;
 const NET = {
   enabled: false,
   socket: null,
@@ -210,7 +214,7 @@ const NET = {
   state: null,
   lastStateAt: 0,
   inputSeq: 0,
-  serverUrl: localStorage.getItem("spnet_ws") || "ws://localhost:8788",
+  serverUrl: localStorage.getItem("spnet_ws") || DEFAULT_WS,
 };
 
 const WARMUP_TIME = 4;
