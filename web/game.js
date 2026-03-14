@@ -67,6 +67,7 @@ const urlParams = new URLSearchParams(window.location.search);
 const apiParam = urlParams.get("api");
 const wsParam = urlParams.get("ws");
 const AUTO_START = urlParams.get("autostart") === "1";
+const FORCE_OFFLINE = urlParams.get("offline") === "1";
 if (apiParam) localStorage.setItem("spnet_api", apiParam);
 if (wsParam) localStorage.setItem("spnet_ws", wsParam);
 
@@ -529,7 +530,7 @@ function startWarmup(seconds) {
 
 function updateWarmup(dt) {
   if (!GAME.warmupActive) return;
-  if (!GAME.multiplayer) {
+  if (!GAME.multiplayer || !NET.connected) {
     GAME.warmupTimer = Math.max(0, GAME.warmupTimer - dt);
   }
   if (warmupText) warmupText.textContent = `Deploying in ${Math.max(1, Math.ceil(GAME.warmupTimer))}...`;
@@ -1942,7 +1943,8 @@ async function startGame() {
 
   const modeKey = modeSelect?.value || "classic";
   const mode = MODES[modeKey] || MODES.classic;
-  const wantsMp = (mpToggle && mpToggle.checked) || mode.arena;
+  let wantsMp = (mpToggle && mpToggle.checked) || mode.arena;
+  if (FORCE_OFFLINE) wantsMp = false;
 
   resetGame();
   initAudio();
@@ -2116,6 +2118,10 @@ async function initUI() {
   if (modeSelect) modeSelect.value = localStorage.getItem(MODE_KEY) || "classic";
   if (mapSelect) mapSelect.value = localStorage.getItem(MAP_KEY) || "ridge";
   if (mpToggle) mpToggle.checked = localStorage.getItem(MP_KEY) === "1";
+  if (FORCE_OFFLINE && mpToggle) {
+    mpToggle.checked = false;
+    localStorage.setItem(MP_KEY, "0");
+  }
   updateTopbar();
   updateProfilePanel();
   updateDailyUI();
