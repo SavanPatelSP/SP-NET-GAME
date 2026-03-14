@@ -62,6 +62,12 @@ let dpr = Math.max(1, window.devicePixelRatio || 1);
 let audioCtx = null;
 let audioMaster = null;
 
+const urlParams = new URLSearchParams(window.location.search);
+const apiParam = urlParams.get("api");
+const wsParam = urlParams.get("ws");
+if (apiParam) localStorage.setItem("spnet_api", apiParam);
+if (wsParam) localStorage.setItem("spnet_ws", wsParam);
+
 const IS_LOCAL = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
 const DEFAULT_API = IS_LOCAL ? "http://localhost:8787" : `${window.location.protocol}//${window.location.host}`;
 const API_BASE = localStorage.getItem("spnet_api") || DEFAULT_API;
