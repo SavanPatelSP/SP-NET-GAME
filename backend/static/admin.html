@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>SP NET GAMERS Admin</title>
+  <link rel="stylesheet" href="/static/admin.css" />
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>SP NET GAMERS Admin</h1>
+      <p>Supervisor/Manager dashboard (dev prototype)</p>
+    </header>
+
+    <section id="auth" class="card">
+      <h2>Login</h2>
+      <div class="grid">
+        <label>Email</label>
+        <input id="email" type="email" placeholder="admin@example.com" />
+        <label>Password</label>
+        <input id="password" type="password" placeholder="********" />
+      </div>
+      <button id="loginBtn">Login</button>
+      <div id="authStatus" class="status"></div>
+    </section>
+
+    <section id="panel" class="card hidden">
+      <h2>Grant Currency</h2>
+      <div class="grid">
+        <label>User Email</label>
+        <input id="targetEmail" type="email" placeholder="player@example.com" />
+        <label>SP Coins</label>
+        <input id="grantCoins" type="number" placeholder="0" />
+        <label>SP Gems</label>
+        <input id="grantGems" type="number" placeholder="0" />
+      </div>
+      <button id="grantBtn">Grant</button>
+      <div id="grantStatus" class="status"></div>
+
+      <h2>User Search</h2>
+      <input id="search" type="text" placeholder="Search by email or name" />
+      <button id="refreshBtn">Refresh</button>
+      <div id="userList" class="list"></div>
+    </section>
+  </div>
+
+  <script src="/static/admin.js"></script>
+</body>
+</html>
