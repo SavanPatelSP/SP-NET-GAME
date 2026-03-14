@@ -373,9 +373,10 @@ button:disabled {
   left: 12px;
   bottom: 12px;
   display: flex;
-  gap: 10px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
   z-index: 5;
-  flex-wrap: wrap;
 }
 
 .stat {
@@ -384,6 +385,10 @@ button:disabled {
   border: 1px solid rgba(255,255,255,0.1);
   border-radius: 8px;
   font-size: 12px;
+}
+
+#ammo {
+  border-color: rgba(255, 214, 107, 0.5);
 }
 
 .toast {
@@ -399,6 +404,42 @@ button:disabled {
   z-index: 15;
 }
 
+.killfeed {
+  position: absolute;
+  right: 14px;
+  top: 80px;
+  display: grid;
+  gap: 6px;
+  z-index: 7;
+  max-width: 240px;
+}
+
+.killfeed .entry {
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: rgba(10, 16, 28, 0.8);
+  border: 1px solid rgba(255,255,255,0.1);
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.actions-panel {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 7;
+}
+
+.actions-panel .ghost {
+  min-width: 88px;
+  text-align: center;
+  background: rgba(0,0,0,0.55);
+  border-color: rgba(255,255,255,0.18);
+}
+
 @media (max-width: 720px) {
   .topbar {
     grid-template-columns: 1fr;
@@ -406,5 +447,6 @@ button:disabled {
   }
   .actions { justify-content: flex-start; }
   .hud { bottom: 70px; }
+  .actions-panel { bottom: 80px; }
   .account-actions { justify-content: flex-start; }
 }

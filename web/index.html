@@ -73,6 +73,8 @@
     </div>
   </div>
 
+  <div id="killfeed" class="killfeed"></div>
+
   <div id="panelProfile" class="panel hidden">
     <div class="panel-card">
       <h2>Profile</h2>
@@ -108,6 +110,13 @@
     </div>
   </div>
 
+  <div id="warmup" class="panel hidden">
+    <div class="panel-card">
+      <h2>Warm-Up</h2>
+      <div id="warmupText" class="panel-text">Deploying...</div>
+    </div>
+  </div>
+
   <div id="toast" class="toast hidden"></div>
 
   <canvas id="game"></canvas>
@@ -115,7 +124,13 @@
     <div class="stat" id="health"></div>
     <div class="stat" id="armor"></div>
     <div class="stat" id="weapon"></div>
+    <div class="stat" id="ammo"></div>
     <div class="stat" id="remain"></div>
+  </div>
+
+  <div id="actions" class="actions-panel">
+    <button id="actionHeal" class="ghost small">Heal</button>
+    <button id="actionSwap" class="ghost small">Swap</button>
   </div>
 
   <script src="game.js"></script>

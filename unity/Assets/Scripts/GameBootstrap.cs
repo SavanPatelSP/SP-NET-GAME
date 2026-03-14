@@ -19,7 +19,8 @@ public class GameBootstrap : MonoBehaviour
     [SerializeField] private int lootCount = 50;
     [SerializeField] private int obstacleCount = 18;
     [SerializeField] private float worldSize = 200f;
-    [SerializeField] private float zoneDamagePerSecond = 10f;
+    [SerializeField] private float zoneDamagePerSecond = 14f;
+    [SerializeField] private float warmupDuration = 4f;
 
     public float WorldSize => worldSize;
     public float BotAggroRange => 35f;
@@ -28,6 +29,8 @@ public class GameBootstrap : MonoBehaviour
     public PlayerController Player => player;
     public Vector2 LeftJoystickValue => leftJoystick != null ? leftJoystick.Value : Vector2.zero;
     public Vector2 RightJoystickValue => rightJoystick != null ? rightJoystick.Value : Vector2.zero;
+    public bool MatchLive => warmupTimer <= 0f;
+    public float WarmupRemaining => warmupTimer;
 
     private PlayerController player;
     private readonly List<BotController> bots = new List<BotController>();
@@ -99,6 +102,7 @@ public class GameBootstrap : MonoBehaviour
     private string playerName = "LocalPlayer";
     private string lastRewardDate = "";
     private bool matchRewarded;
+    private float warmupTimer;
 
     [Serializable]
     private class Mission
@@ -266,8 +270,17 @@ public class GameBootstrap : MonoBehaviour
     {
         if (player == null) return;
 
-        UpdateZone(Time.deltaTime);
-        ApplyZoneDamage(Time.deltaTime);
+        float dt = Time.deltaTime;
+        if (warmupTimer > 0f)
+        {
+            warmupTimer = Mathf.Max(0f, warmupTimer - dt);
+        }
+
+        if (MatchLive)
+        {
+            UpdateZone(dt);
+            ApplyZoneDamage(dt);
+        }
         UpdateLootPickups();
         UpdateHUD();
 
@@ -545,20 +558,20 @@ public class GameBootstrap : MonoBehaviour
     {
         weaponDefs = new WeaponDef[]
         {
-            new WeaponDef { id = "Rift-19", type = "AR", fireRate = 9f, damage = 14f, bulletSpeed = 70f, spread = 2.5f, range = 70f },
-            new WeaponDef { id = "Viper-K", type = "SMG", fireRate = 13f, damage = 10f, bulletSpeed = 60f, spread = 4f, range = 55f },
-            new WeaponDef { id = "Grave-12", type = "SG", fireRate = 1.1f, damage = 48f, bulletSpeed = 55f, spread = 9f, range = 26f },
+            new WeaponDef { id = "Rift-19", type = "AR", fireRate = 9f, damage = 14f, bulletSpeed = 70f, spread = 1.8f, range = 70f },
+            new WeaponDef { id = "Viper-K", type = "SMG", fireRate = 13f, damage = 10f, bulletSpeed = 60f, spread = 3.0f, range = 55f },
+            new WeaponDef { id = "Grave-12", type = "SG", fireRate = 1.1f, damage = 48f, bulletSpeed = 55f, spread = 7f, range = 26f },
         };
 
         phases = new ZonePhase[]
         {
-            new ZonePhase(10f, 18f, 100f),
-            new ZonePhase(8f, 16f, 80f),
-            new ZonePhase(8f, 14f, 60f),
-            new ZonePhase(6f, 12f, 45f),
-            new ZonePhase(6f, 10f, 32f),
-            new ZonePhase(4f, 10f, 22f),
-            new ZonePhase(0f, 12f, 14f),
+            new ZonePhase(6f, 14f, 100f),
+            new ZonePhase(5f, 12f, 82f),
+            new ZonePhase(4f, 10f, 62f),
+            new ZonePhase(3f, 9f, 46f),
+            new ZonePhase(2f, 8f, 32f),
+            new ZonePhase(1f, 8f, 22f),
+            new ZonePhase(0f, 10f, 14f),
         };
     }
 
@@ -573,6 +586,7 @@ public class GameBootstrap : MonoBehaviour
         SetupCamera();
         SetupZone();
         matchRewarded = false;
+        warmupTimer = warmupDuration;
     }
 
     private void RestartMatch()
@@ -822,7 +836,7 @@ public class GameBootstrap : MonoBehaviour
         {
             if (lp == null || lp.taken) continue;
 
-            if (Vector3.Distance(player.transform.position, lp.transform.position) < 2f)
+            if (Vector3.Distance(player.transform.position, lp.transform.position) < 3.2f)
             {
                 ApplyLoot(player.combatant, lp);
                 continue;
@@ -831,7 +845,7 @@ public class GameBootstrap : MonoBehaviour
             foreach (BotController bot in bots)
             {
                 if (bot == null || !bot.combatant.alive) continue;
-                if (Vector3.Distance(bot.transform.position, lp.transform.position) < 2f)
+                if (Vector3.Distance(bot.transform.position, lp.transform.position) < 3.2f)
                 {
                     ApplyLoot(bot.combatant, lp);
                     break;
@@ -862,6 +876,7 @@ public class GameBootstrap : MonoBehaviour
     public void Fire(Combatant shooter, Vector3 direction)
     {
         if (shooter == null || !shooter.alive) return;
+        if (!MatchLive) return;
         if (shooter.weapon == null) return;
         if (shooter.cooldown > 0f) return;
 
@@ -939,6 +954,12 @@ public class GameBootstrap : MonoBehaviour
 
         if (matchRewarded && (isWinner || isEliminated))
         {
+            return;
+        }
+
+        if (!MatchLive)
+        {
+            statusText.text = $"WARM-UP {Mathf.CeilToInt(warmupTimer)}";
             return;
         }
 
