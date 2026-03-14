@@ -4,15 +4,23 @@ Local backend for accounts, cloud save, store rotation, missions, battle pass, a
 
 ## Run
 ```bash
-cd /Users/savanpatel/Documents/spnet-backend
+cd /Users/savanpatel/Documents/SP-NET-GAME/backend
 python3 server.py
 ```
 
 Backend runs at `http://localhost:8787`.
 
+## Realtime Multiplayer Server (WebSocket)
+```bash
+cd /Users/savanpatel/Documents/SP-NET-GAME/backend
+python3 -m pip install -r requirements.txt
+python3 rt_server.py
+```
+Realtime server runs at `ws://localhost:8788`.
+
 ## Create Admin User
 ```bash
-cd /Users/savanpatel/Documents/spnet-backend
+cd /Users/savanpatel/Documents/SP-NET-GAME/backend
 python3 server.py --create-admin admin@example.com admin123
 ```
 

@@ -123,6 +123,10 @@ public class GameBootstrap : MonoBehaviour
     private float zoneRadius;
     private int zoneIndex;
     private float zoneTimer;
+    private int mapVariant;
+    private int modeVariant;
+    private string mapName = "Ridgefront";
+    private string modeName = "Classic";
 
     private struct ZonePhase
     {
@@ -138,6 +142,7 @@ public class GameBootstrap : MonoBehaviour
     }
 
     private ZonePhase[] phases;
+    private ZonePhase[] basePhases;
 
     private readonly Mission[] missionTemplates = new Mission[]
     {
@@ -282,6 +287,7 @@ public class GameBootstrap : MonoBehaviour
             ApplyZoneDamage(dt);
         }
         UpdateLootPickups();
+        UpdateBoosts(dt);
         UpdateHUD();
 
         if (Input.GetKeyDown(KeyCode.R))
@@ -561,9 +567,12 @@ public class GameBootstrap : MonoBehaviour
             new WeaponDef { id = "Rift-19", type = "AR", fireRate = 9f, damage = 14f, bulletSpeed = 70f, spread = 1.8f, range = 70f },
             new WeaponDef { id = "Viper-K", type = "SMG", fireRate = 13f, damage = 10f, bulletSpeed = 60f, spread = 3.0f, range = 55f },
             new WeaponDef { id = "Grave-12", type = "SG", fireRate = 1.1f, damage = 48f, bulletSpeed = 55f, spread = 7f, range = 26f },
+            new WeaponDef { id = "Siren-12", type = "DMR", fireRate = 3.5f, damage = 28f, bulletSpeed = 86f, spread = 1.2f, range = 82f },
+            new WeaponDef { id = "Warden", type = "SN", fireRate = 0.8f, damage = 85f, bulletSpeed = 98f, spread = 0.8f, range = 110f },
+            new WeaponDef { id = "Bearclaw", type = "LMG", fireRate = 8f, damage = 16f, bulletSpeed = 68f, spread = 2.2f, range = 70f },
         };
 
-        phases = new ZonePhase[]
+        basePhases = new ZonePhase[]
         {
             new ZonePhase(6f, 14f, 100f),
             new ZonePhase(5f, 12f, 82f),
@@ -573,11 +582,67 @@ public class GameBootstrap : MonoBehaviour
             new ZonePhase(1f, 8f, 22f),
             new ZonePhase(0f, 10f, 14f),
         };
+        phases = basePhases;
+    }
+
+    private void SelectMatchVariant()
+    {
+        mapVariant = UnityEngine.Random.Range(0, 3);
+        modeVariant = UnityEngine.Random.Range(0, 3);
+
+        if (mapVariant == 0) mapName = "Ridgefront";
+        else if (mapVariant == 1) mapName = "Harborline";
+        else mapName = "Metro Grid";
+
+        if (modeVariant == 0) modeName = "Classic";
+        else if (modeVariant == 1) modeName = "Blitz";
+        else modeName = "Vehicle Rush";
+
+        ApplyModeSettings();
+    }
+
+    private void ApplyModeSettings()
+    {
+        float phaseScale = 1f;
+        zoneDamagePerSecond = 14f;
+        if (modeName == "Blitz")
+        {
+            botCount = 18;
+            lootCount = 42;
+            phaseScale = 0.7f;
+            zoneDamagePerSecond = 18f;
+        }
+        else if (modeName == "Vehicle Rush")
+        {
+            botCount = 24;
+            lootCount = 55;
+            phaseScale = 0.85f;
+            zoneDamagePerSecond = 16f;
+        }
+        else
+        {
+            botCount = 28;
+            lootCount = 50;
+            phaseScale = 1f;
+        }
+        phases = ScalePhases(phaseScale);
+    }
+
+    private ZonePhase[] ScalePhases(float scale)
+    {
+        ZonePhase[] scaled = new ZonePhase[basePhases.Length];
+        for (int i = 0; i < basePhases.Length; i++)
+        {
+            ZonePhase p = basePhases[i];
+            scaled[i] = new ZonePhase(Mathf.Max(0f, p.wait * scale), Mathf.Max(1f, p.shrink * scale), p.radius);
+        }
+        return scaled;
     }
 
     private void StartMatch()
     {
         ClearWorld();
+        SelectMatchVariant();
         CreateLighting();
         CreateWorld();
         SpawnPlayer();
@@ -624,7 +689,9 @@ public class GameBootstrap : MonoBehaviour
         float scale = worldSize / 10f;
         ground.transform.localScale = new Vector3(scale, 1f, scale);
         ground.transform.position = Vector3.zero;
-        SetColor(ground, new Color(0.06f, 0.09f, 0.16f));
+        if (mapVariant == 1) SetColor(ground, new Color(0.05f, 0.1f, 0.14f));
+        else if (mapVariant == 2) SetColor(ground, new Color(0.08f, 0.08f, 0.12f));
+        else SetColor(ground, new Color(0.06f, 0.09f, 0.16f));
         worldObjects.Add(ground);
 
         for (int i = 0; i < obstacleCount; i++)
@@ -635,7 +702,25 @@ public class GameBootstrap : MonoBehaviour
             float h = Random.Range(2f, 5f);
             float d = Random.Range(5f, 10f);
             float half = worldSize * 0.5f - 8f;
-            cube.transform.position = new Vector3(Random.Range(-half, half), h * 0.5f, Random.Range(-half, half));
+            float x = Random.Range(-half, half);
+            float z = Random.Range(-half, half);
+
+            if (mapVariant == 1 && i % 3 == 0)
+            {
+                w = Random.Range(12f, 18f);
+                d = Random.Range(4f, 7f);
+                z = Random.Range(-half, 0f);
+            }
+            else if (mapVariant == 2)
+            {
+                float grid = 18f;
+                x = Mathf.Round(x / grid) * grid;
+                z = Mathf.Round(z / grid) * grid;
+                w = Random.Range(6f, 10f);
+                d = Random.Range(6f, 10f);
+            }
+
+            cube.transform.position = new Vector3(x, h * 0.5f, z);
             cube.transform.localScale = new Vector3(w, h, d);
             SetColor(cube, new Color(0.12f, 0.15f, 0.22f));
             worldObjects.Add(cube);
@@ -717,7 +802,12 @@ public class GameBootstrap : MonoBehaviour
             LootPickup lp = obj.AddComponent<LootPickup>();
 
             float roll = Random.value;
-            if (roll > 0.9f)
+            if (roll > 0.96f)
+            {
+                lp.kind = LootKind.Vehicle;
+                SetColor(obj, new Color(1f, 0.55f, 0.2f));
+            }
+            else if (roll > 0.9f)
             {
                 lp.kind = LootKind.Med;
                 SetColor(obj, new Color(0.4f, 1f, 0.6f));
@@ -870,7 +960,46 @@ public class GameBootstrap : MonoBehaviour
         {
             c.health = Mathf.Min(c.maxHealth, c.health + 35f);
         }
+        else if (lp.kind == LootKind.Vehicle)
+        {
+            ActivateVehicle(c);
+        }
         lp.gameObject.SetActive(false);
+    }
+
+    private void ActivateVehicle(Combatant c)
+    {
+        if (c == null) return;
+        c.boostTimer = 6f;
+        c.speedMult = 1.6f;
+    }
+
+    private void UpdateBoosts(float dt)
+    {
+        if (player != null) UpdateBoost(player.combatant, dt);
+        foreach (BotController bot in bots)
+        {
+            if (bot == null) continue;
+            UpdateBoost(bot.combatant, dt);
+        }
+    }
+
+    private void UpdateBoost(Combatant c, float dt)
+    {
+        if (c == null) return;
+        if (c.boostTimer > 0f)
+        {
+            c.boostTimer -= dt;
+            if (c.boostTimer <= 0f)
+            {
+                c.boostTimer = 0f;
+                c.speedMult = 1f;
+            }
+            else
+            {
+                c.speedMult = 1.6f;
+            }
+        }
     }
 
     public void Fire(Combatant shooter, Vector3 direction)
@@ -983,7 +1112,7 @@ public class GameBootstrap : MonoBehaviour
         if (coinsText != null) coinsText.text = $"SP Coins: {spCoins}";
         if (levelText != null) levelText.text = $"Level {level}";
         if (xpText != null) xpText.text = $"XP {xp}/{XpToNext(level)}";
-        if (nameText != null) nameText.text = $"{GameName} {Version} | {playerName}";
+        if (nameText != null) nameText.text = $"{GameName} {Version} | {playerName} | {modeName} @ {mapName}";
     }
 
     private void UpdateProfileUI()

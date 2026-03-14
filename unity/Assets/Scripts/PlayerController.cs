@@ -25,7 +25,7 @@ public class PlayerController : MonoBehaviour
         Vector3 moveDir = new Vector3(move.x, 0f, move.y);
         if (moveDir.sqrMagnitude > 1f) moveDir.Normalize();
 
-        combatant.controller.Move(moveDir * combatant.speed * Time.deltaTime);
+        combatant.controller.Move(moveDir * combatant.speed * combatant.speedMult * Time.deltaTime);
 
         Vector3 aimDir = GetAimDirection();
         if (aimDir.sqrMagnitude > 0.001f)

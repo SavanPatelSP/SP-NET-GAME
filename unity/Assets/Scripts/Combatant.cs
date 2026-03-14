@@ -8,6 +8,8 @@ public class Combatant : MonoBehaviour
     public float maxHealth;
     public float armor;
     public float speed;
+    public float speedMult = 1f;
+    public float boostTimer;
     public int kills;
     public bool alive = true;
     public WeaponDef weapon;

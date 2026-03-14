@@ -10,6 +10,9 @@ const loginBtn = document.getElementById("loginBtn");
 const registerBtn = document.getElementById("registerBtn");
 const offlineBtn = document.getElementById("offlineBtn");
 const authStatus = document.getElementById("authStatus");
+const modeSelect = document.getElementById("modeSelect");
+const mapSelect = document.getElementById("mapSelect");
+const mpToggle = document.getElementById("mpToggle");
 
 const dailyRewardText = document.getElementById("dailyRewardText");
 const claimDailyBtn = document.getElementById("claimDaily");
@@ -32,6 +35,8 @@ const closeStore = document.getElementById("closeStore");
 const profileSummary = document.getElementById("profileSummary");
 const missionsList = document.getElementById("missionsList");
 const battlePass = document.getElementById("battlePass");
+const battlePassTrack = document.getElementById("battlePassTrack");
+const inventoryList = document.getElementById("inventoryList");
 const storeList = document.getElementById("storeList");
 const storeStatus = document.getElementById("storeStatus");
 
@@ -45,6 +50,7 @@ const hudHealth = document.getElementById("health");
 const hudArmor = document.getElementById("armor");
 const hudWeapon = document.getElementById("weapon");
 const hudAmmo = document.getElementById("ammo");
+const hudVehicle = document.getElementById("vehicle");
 const hudRemain = document.getElementById("remain");
 const warmupPanel = document.getElementById("warmup");
 const warmupText = document.getElementById("warmupText");
@@ -61,7 +67,7 @@ let authToken = localStorage.getItem("spnet_token") || "";
 let onlineMode = false;
 
 const WORLD = { w: 2000, h: 2000 };
-const CENTER = { x: WORLD.w / 2, y: WORLD.h / 2 };
+const WORLD_CENTER = { x: WORLD.w / 2, y: WORLD.h / 2 };
 
 const TRAITS = {
   swift: { name: "Trailblazer", speedMult: 1.1, maxHealthAdd: 0 },
@@ -79,8 +85,35 @@ const WEAPONS = [
   { id: "Bearclaw", type: "LMG", fireRate: 8, damage: 16, speed: 680, spread: 0.06, range: 700, mag: 60, reserve: 180, reload: 2.8 },
 ];
 
+const ATTACHMENTS = [
+  { id: "att_stability", name: "Stability Grip", spreadMult: 0.78 },
+  { id: "att_scope", name: "Tactical Scope", rangeMult: 1.12 },
+  { id: "att_extended", name: "Extended Mag", magAdd: 12 },
+  { id: "att_quick", name: "Quick Reload", reloadMult: 0.85 },
+  { id: "att_tuned", name: "Tuned Trigger", fireRateMult: 1.08 },
+  { id: "att_rifled", name: "Rifled Barrel", damageMult: 1.05 },
+];
+
+const MODES = {
+  classic: { name: "Classic", botCount: 28, lootCount: 55, vehicleRate: 0.06, phaseScale: 1, zoneDamage: 14 },
+  blitz: { name: "Blitz", botCount: 18, lootCount: 42, vehicleRate: 0.08, phaseScale: 0.7, zoneDamage: 18 },
+  duo: { name: "Duo", botCount: 20, lootCount: 50, vehicleRate: 0.07, phaseScale: 0.9, zoneDamage: 15 },
+  squad: { name: "Squad", botCount: 32, lootCount: 65, vehicleRate: 0.06, phaseScale: 1, zoneDamage: 14 },
+  vehicle: { name: "Vehicle Rush", botCount: 24, lootCount: 55, vehicleRate: 0.18, phaseScale: 0.85, zoneDamage: 16 },
+  arena: { name: "MP Arena (Beta)", botCount: 0, lootCount: 0, vehicleRate: 0, phaseScale: 1, zoneDamage: 12, arena: true },
+};
+
+const MAPS = {
+  ridge: { name: "Ridgefront", seed: 19, center: { x: WORLD_CENTER.x, y: WORLD_CENTER.y }, type: "ridge" },
+  harbor: { name: "Harborline", seed: 42, center: { x: WORLD_CENTER.x + 120, y: WORLD_CENTER.y - 80 }, type: "harbor" },
+  metro: { name: "Metro Grid", seed: 7, center: { x: WORLD_CENTER.x - 80, y: WORLD_CENTER.y + 140 }, type: "metro" },
+};
+
 const PROFILE_KEY = "spnet_profile_v101";
 const MISSION_KEY = "spnet_missions_v101";
+const MODE_KEY = "spnet_mode_v101";
+const MAP_KEY = "spnet_map_v101";
+const MP_KEY = "spnet_mp_v101";
 const POWER_OUT_MULT = 1.3;
 const POWER_IN_MULT = 0.8;
 const DEFAULT_PROFILE = {
@@ -97,12 +130,26 @@ const DEFAULT_PROFILE = {
   battleXp: 0,
   inventory: [],
   powerActive: false,
+  equippedAttachments: ["att_stability"],
 };
 
 const LOCAL_MISSIONS = [
   { id: "play_1", title: "Play 1 match", target: 1, rewardCoins: 120, rewardGems: 0, rewardXp: 80 },
   { id: "kills_3", title: "Get 3 kills", target: 3, rewardCoins: 150, rewardGems: 0, rewardXp: 120 },
   { id: "win_1", title: "Win 1 match", target: 1, rewardCoins: 200, rewardGems: 1, rewardXp: 160 },
+];
+
+const SEASON_TRACK = [
+  { tier: 1, free: "100 Coins", premium: "Neon Banner" },
+  { tier: 2, free: "150 Coins", premium: "Crate: Echo" },
+  { tier: 3, free: "200 Coins", premium: "Skin: Shadow Ops" },
+  { tier: 4, free: "250 Coins", premium: "Emote: Pulse" },
+  { tier: 5, free: "300 Coins", premium: "Weapon Skin: Rift" },
+  { tier: 6, free: "350 Coins", premium: "Attachment: Stability" },
+  { tier: 7, free: "400 Coins", premium: "Crate: Nova" },
+  { tier: 8, free: "450 Coins", premium: "Skin: Harborline" },
+  { tier: 9, free: "500 Coins", premium: "Vehicle Skin: Strider" },
+  { tier: 10, free: "600 Coins", premium: "Legend Title" },
 ];
 
 let PROFILE = loadProfile();
@@ -122,6 +169,13 @@ const GAME = {
   cameraShake: 0,
   zonePulse: 0,
   killfeed: [],
+  mode: "classic",
+  map: "ridge",
+  modeConfig: MODES.classic,
+  phases: buildPhases(1),
+  zoneDamage: 14,
+  multiplayer: false,
+  netSwap: false,
   player: null,
   bots: [],
   bullets: [],
@@ -142,9 +196,21 @@ const GAME = {
     phaseTime: 0,
     currentRadius: 1000,
     targetRadius: 800,
+    center: { x: WORLD_CENTER.x, y: WORLD_CENTER.y },
   },
   remaining: 0,
   trait: "swift",
+};
+
+const NET = {
+  enabled: false,
+  socket: null,
+  selfId: null,
+  connected: false,
+  state: null,
+  lastStateAt: 0,
+  inputSeq: 0,
+  serverUrl: localStorage.getItem("spnet_ws") || "ws://localhost:8788",
 };
 
 const WARMUP_TIME = 4;
@@ -157,6 +223,14 @@ const PHASES = [
   { wait: 1, shrink: 8, radius: 220 },
   { wait: 0, shrink: 10, radius: 140 },
 ];
+
+function buildPhases(scale = 1) {
+  return PHASES.map((p) => ({
+    wait: Math.max(0, p.wait * scale),
+    shrink: Math.max(1, p.shrink * scale),
+    radius: p.radius,
+  }));
+}
 
 function resize() {
   const rect = canvas.getBoundingClientRect();
@@ -215,6 +289,8 @@ function loadProfile() {
     const data = JSON.parse(raw);
     const merged = { ...DEFAULT_PROFILE, ...data };
     merged.powerActive = (merged.inventory || []).includes("boost_power60");
+    if (!Array.isArray(merged.equippedAttachments)) merged.equippedAttachments = [];
+    merged.equippedAttachments = merged.equippedAttachments.filter((id) => (merged.inventory || []).includes(id));
     return merged;
   } catch (e) {
     return { ...DEFAULT_PROFILE };
@@ -269,6 +345,7 @@ async function tryCloudProfile() {
 }
 
 function applyServerProfile(data) {
+  const equipped = Array.isArray(PROFILE.equippedAttachments) ? PROFILE.equippedAttachments : [];
   PROFILE.name = data.user.name;
   PROFILE.level = data.profile.level;
   PROFILE.xp = data.profile.xp;
@@ -282,6 +359,8 @@ function applyServerProfile(data) {
   PROFILE.gems = data.balances.gems;
   PROFILE.inventory = data.inventory || [];
   PROFILE.powerActive = PROFILE.inventory.includes("boost_power60");
+  PROFILE.equippedAttachments = equipped.length ? equipped : DEFAULT_PROFILE.equippedAttachments.slice();
+  PROFILE.equippedAttachments = PROFILE.equippedAttachments.filter((id) => PROFILE.inventory.includes(id));
   MISSIONS = data.missions || MISSIONS;
   OFFERS = data.offers || [];
   saveProfile();
@@ -363,11 +442,14 @@ function updateProfilePanel() {
     `Matches: ${PROFILE.matches}\n` +
     `Lifetime Kills: ${PROFILE.lifetimeKills}\n` +
     `Power Boost: ${PROFILE.powerActive ? "Active (60%)" : "Inactive"}\n` +
+    `Attachments: ${(PROFILE.equippedAttachments || []).join(", ") || "None"}\n` +
     `Inventory: ${PROFILE.inventory.slice(0, 6).join(", ") || "None"}`;
 
   const battleNeed = battleXpToNext(PROFILE.battleTier);
   battlePass.textContent = `Tier ${PROFILE.battleTier} | XP ${PROFILE.battleXp}/${battleNeed}`;
   renderMissions();
+  renderInventory();
+  renderBattlePassTrack();
 }
 
 function updateDailyUI() {
@@ -434,7 +516,9 @@ function startWarmup(seconds) {
 
 function updateWarmup(dt) {
   if (!GAME.warmupActive) return;
-  GAME.warmupTimer = Math.max(0, GAME.warmupTimer - dt);
+  if (!GAME.multiplayer) {
+    GAME.warmupTimer = Math.max(0, GAME.warmupTimer - dt);
+  }
   if (warmupText) warmupText.textContent = `Deploying in ${Math.max(1, Math.ceil(GAME.warmupTimer))}...`;
   if (GAME.warmupTimer <= 0) {
     GAME.warmupActive = false;
@@ -480,7 +564,7 @@ function finishReload(p) {
 
 function equipWeapon(p, weapon) {
   if (!weapon) return;
-  const newWeapon = { ...weapon };
+  const newWeapon = p.id === "player" ? buildWeapon(weapon) : { ...weapon };
   if (!p.weaponSlots) p.weaponSlots = [newWeapon, null];
 
   if (!p.weaponSlots[0]) {
@@ -516,6 +600,161 @@ function useMedkit(p) {
   p.healCooldown = 0.6;
   sfxHeal();
   showToast("Healed +45");
+}
+
+function enterVehicle(p, type = "Strider") {
+  if (!p) return;
+  p.vehicle = { type, speedMult: 1.6, timer: 8 };
+  showToast(`${type} engaged`);
+}
+
+function startMultiplayer() {
+  GAME.multiplayer = true;
+  NET.enabled = true;
+  NET.connected = false;
+  NET.selfId = null;
+  NET.state = null;
+  NET.inputSeq = 0;
+
+  try {
+    const ws = new WebSocket(NET.serverUrl);
+    NET.socket = ws;
+    ws.onopen = () => {
+      NET.connected = true;
+      ws.send(JSON.stringify({ type: "hello", name: PROFILE.name || "Player", version: "v1.0.1" }));
+      showToast("Matchmaking...");
+    };
+    ws.onmessage = (ev) => {
+      try {
+        const msg = JSON.parse(ev.data);
+        handleNetMessage(msg);
+      } catch (e) {
+        // ignore malformed packet
+      }
+    };
+    ws.onerror = () => {
+      stopMultiplayer();
+      showToast("Multiplayer error.");
+    };
+    ws.onclose = () => {
+      NET.connected = false;
+      NET.enabled = false;
+      GAME.multiplayer = false;
+      showToast("Multiplayer disconnected.");
+    };
+  } catch (e) {
+    GAME.multiplayer = false;
+    NET.enabled = false;
+    showToast("Multiplayer server unavailable.");
+  }
+}
+
+function stopMultiplayer() {
+  if (NET.socket) {
+    try { NET.socket.close(); } catch (e) {}
+  }
+  NET.socket = null;
+  NET.enabled = false;
+  NET.connected = false;
+  NET.selfId = null;
+  GAME.multiplayer = false;
+}
+
+function handleNetMessage(msg) {
+  if (!msg || !msg.type) return;
+  if (msg.type === "welcome") {
+    NET.selfId = msg.id;
+    if (msg.serverTime) NET.lastStateAt = performance.now();
+    return;
+  }
+  if (msg.type === "warmup") {
+    GAME.warmupActive = msg.remaining > 0;
+    GAME.warmupTimer = msg.remaining || 0;
+    if (GAME.warmupActive && warmupPanel) warmupPanel.classList.remove("hidden");
+    if (!GAME.warmupActive && warmupPanel) warmupPanel.classList.add("hidden");
+    return;
+  }
+  if (msg.type === "event") {
+    if (msg.event === "killfeed") addKillfeed(msg.text || "");
+    if (msg.event === "hit") GAME.hitMarker = Math.max(GAME.hitMarker, 0.12);
+    if (msg.event === "damage") GAME.damageFlash = Math.max(GAME.damageFlash, 0.25);
+    if (msg.event === "knock") GAME.knockFlash = Math.max(GAME.knockFlash, 0.5);
+    return;
+  }
+  if (msg.type === "state") {
+    applyNetState(msg);
+  }
+}
+
+function applyNetState(state) {
+  NET.state = state;
+  NET.lastStateAt = performance.now();
+  const players = state.players || [];
+  const self = players.find((p) => p.id === NET.selfId);
+  if (!self) return;
+
+  if (!GAME.player) {
+    GAME.player = createPlayer();
+  }
+
+  GAME.player.id = self.id;
+  GAME.player.x = self.x;
+  GAME.player.y = self.y;
+  GAME.player.health = self.health;
+  GAME.player.maxHealth = self.maxHealth || GAME.player.maxHealth;
+  GAME.player.armor = self.armor;
+  GAME.player.alive = self.alive;
+  GAME.player.kills = self.kills;
+  GAME.player.ammoInMag = self.ammoInMag ?? GAME.player.ammoInMag;
+  GAME.player.ammoReserve = self.ammoReserve ?? GAME.player.ammoReserve;
+  GAME.player.weapon = WEAPONS.find((w) => w.id === self.weaponId) || GAME.player.weapon;
+  GAME.player.weaponSlots = [GAME.player.weapon, null];
+  GAME.player.weaponIndex = 0;
+
+  const others = players.filter((p) => p.id !== NET.selfId);
+  GAME.bots = others.map((p, idx) => ({
+    id: p.id,
+    x: p.x,
+    y: p.y,
+    r: 13,
+    health: p.health,
+    maxHealth: p.maxHealth || 100,
+    armor: p.armor,
+    weapon: WEAPONS.find((w) => w.id === p.weaponId) || WEAPONS[0],
+    alive: p.alive,
+    kills: p.kills,
+  }));
+
+  GAME.bullets = (state.bullets || []).map((b) => ({ x: b.x, y: b.y, life: 0.2 }));
+  if (state.zone) {
+    GAME.zone.currentRadius = state.zone.radius;
+    if (state.zone.center) GAME.zone.center = state.zone.center;
+  }
+  GAME.remaining = players.filter((p) => p.alive).length;
+}
+
+function sendNetInput() {
+  if (!NET.connected || !NET.socket) return;
+  const move = getMoveVector();
+  const aimAngle = getAimAngle();
+  const wantsFire = getWantsFire();
+  NET.inputSeq += 1;
+  const payload = {
+    type: "input",
+    seq: NET.inputSeq,
+    move: [move.x, move.y],
+    aim: [Math.cos(aimAngle), Math.sin(aimAngle)],
+    fire: wantsFire,
+    swap: GAME.netSwap,
+    reload: GAME.keys["KeyR"] || false,
+    heal: false,
+  };
+  GAME.netSwap = false;
+  try {
+    NET.socket.send(JSON.stringify(payload));
+  } catch (e) {
+    // ignore send failure
+  }
 }
 
 async function claimDailyReward() {
@@ -603,10 +842,16 @@ function localOffers() {
     { id: "offer_skin", name: "Elite Skin", priceCoins: 0, priceGems: 20, offerType: "cosmetic", payload: { items: ["skin_elite"] } },
     { id: "offer_xp", name: "XP Boost", priceCoins: 500, priceGems: 0, offerType: "boost", payload: { items: ["xp_boost_2h"] } },
     { id: "offer_attachment", name: "Attachment Pack", priceCoins: 350, priceGems: 0, offerType: "gear", payload: { items: ["att_stability", "att_scope"] } },
+    { id: "offer_att_extended", name: "Extended Mag", priceCoins: 0, priceGems: 18, offerType: "gear", payload: { items: ["att_extended"] } },
+    { id: "offer_att_quick", name: "Quick Reload", priceCoins: 300, priceGems: 0, offerType: "gear", payload: { items: ["att_quick"] } },
+    { id: "offer_att_tuned", name: "Tuned Trigger", priceCoins: 0, priceGems: 22, offerType: "gear", payload: { items: ["att_tuned"] } },
+    { id: "offer_att_rifled", name: "Rifled Barrel", priceCoins: 260, priceGems: 0, offerType: "gear", payload: { items: ["att_rifled"] } },
     { id: "offer_ability", name: "Ability Kit", priceCoins: 0, priceGems: 15, offerType: "ability", payload: { items: ["kit_sensorist"] } },
     { id: "offer_power60", name: "Power Core (60% Boost)", priceCoins: 0, priceGems: 60, offerType: "power", payload: { items: ["boost_power60"] } },
+    { id: "offer_pass", name: "Season Pass Premium", priceCoins: 0, priceGems: 80, offerType: "pass", payload: { items: ["pass_premium_s1"] } },
+    { id: "offer_vehicle_skin", name: "Vehicle Skin: Strider", priceCoins: 0, priceGems: 30, offerType: "cosmetic", payload: { items: ["vehicle_skin_strider"] } },
   ];
-  return offers.slice(day % 2, day % 2 + 3);
+  return offers.slice(day % 4, day % 4 + 5);
 }
 
 function renderStore() {
@@ -646,6 +891,105 @@ function renderMissions() {
     btn.addEventListener("click", () => claimMission(m.id));
     missionsList.appendChild(item);
   });
+}
+
+function getAttachmentMods(attachments) {
+  const mods = {
+    spreadMult: 1,
+    rangeMult: 1,
+    reloadMult: 1,
+    fireRateMult: 1,
+    damageMult: 1,
+    magAdd: 0,
+  };
+  attachments.forEach((id) => {
+    const a = ATTACHMENTS.find((att) => att.id === id);
+    if (!a) return;
+    if (a.spreadMult) mods.spreadMult *= a.spreadMult;
+    if (a.rangeMult) mods.rangeMult *= a.rangeMult;
+    if (a.reloadMult) mods.reloadMult *= a.reloadMult;
+    if (a.fireRateMult) mods.fireRateMult *= a.fireRateMult;
+    if (a.damageMult) mods.damageMult *= a.damageMult;
+    if (a.magAdd) mods.magAdd += a.magAdd;
+  });
+  return mods;
+}
+
+function applyAttachments(weapon, attachments) {
+  const mods = getAttachmentMods(attachments);
+  return {
+    ...weapon,
+    id: weapon.id,
+    baseId: weapon.baseId || weapon.id,
+    spread: weapon.spread * mods.spreadMult,
+    range: weapon.range * mods.rangeMult,
+    reload: weapon.reload * mods.reloadMult,
+    fireRate: weapon.fireRate * mods.fireRateMult,
+    damage: weapon.damage * mods.damageMult,
+    mag: weapon.mag + mods.magAdd,
+  };
+}
+
+function buildWeapon(baseWeapon) {
+  const attachments = PROFILE.equippedAttachments || [];
+  return applyAttachments({ ...baseWeapon, baseId: baseWeapon.id }, attachments);
+}
+
+function renderInventory() {
+  if (!inventoryList) return;
+  inventoryList.innerHTML = "";
+  const owned = new Set(PROFILE.inventory || []);
+  ATTACHMENTS.forEach((att) => {
+    const item = document.createElement("div");
+    item.className = "inventory-item";
+    const equipped = (PROFILE.equippedAttachments || []).includes(att.id);
+    const locked = !owned.has(att.id);
+    item.innerHTML = `
+      <div>
+        <div class="store-label">${att.name}</div>
+        <div class="store-cost">${locked ? "Locked - buy in Store" : "Owned"}</div>
+      </div>
+      <button class="toggle" ${locked ? "disabled" : ""}>${equipped ? "Equipped" : "Equip"}</button>
+    `;
+    const btn = item.querySelector("button");
+    btn.addEventListener("click", () => toggleAttachment(att.id));
+    inventoryList.appendChild(item);
+  });
+}
+
+function toggleAttachment(id) {
+  const owned = new Set(PROFILE.inventory || []);
+  if (!owned.has(id)) return;
+  const list = new Set(PROFILE.equippedAttachments || []);
+  if (list.has(id)) list.delete(id);
+  else {
+    if (list.size >= 3) {
+      showToast("Max 3 attachments equipped.");
+      return;
+    }
+    list.add(id);
+  }
+  PROFILE.equippedAttachments = Array.from(list);
+  saveProfile();
+  renderInventory();
+  showToast("Attachments updated (applies next match).");
+}
+
+function renderBattlePassTrack() {
+  if (!battlePassTrack) return;
+  battlePassTrack.innerHTML = "";
+  const wrapper = document.createElement("div");
+  wrapper.className = "battle-track";
+  SEASON_TRACK.forEach((tier) => {
+    const row = document.createElement("div");
+    row.className = "battle-tier" + (PROFILE.battleTier >= tier.tier ? " active" : "");
+    row.innerHTML = `
+      <div>Tier ${tier.tier}</div>
+      <div>Free: ${tier.free} | Premium: ${tier.premium}</div>
+    `;
+    wrapper.appendChild(row);
+  });
+  battlePassTrack.appendChild(wrapper);
 }
 
 async function claimMission(missionId) {
@@ -725,11 +1069,11 @@ async function awardMatchRewards(won, kills) {
 
 function createPlayer() {
   const trait = TRAITS[GAME.trait];
-  const starterWeapon = { ...WEAPONS[0] };
+  const starterWeapon = buildWeapon(WEAPONS[0]);
   return {
     id: "player",
-    x: CENTER.x + rand(-120, 120),
-    y: CENTER.y + rand(-120, 120),
+    x: GAME.zone.center.x + rand(-120, 120),
+    y: GAME.zone.center.y + rand(-120, 120),
     vx: 0,
     vy: 0,
     r: 14,
@@ -745,6 +1089,7 @@ function createPlayer() {
     reloadTimer: 0,
     medkits: 1,
     healCooldown: 0,
+    vehicle: null,
     cooldown: 0,
     kills: 0,
     alive: true,
@@ -777,51 +1122,105 @@ function createBot(i) {
   };
 }
 
-function createLoot() {
+function createLoot(count, vehicleRate) {
   const loot = [];
-  for (let i = 0; i < 55; i++) {
+  for (let i = 0; i < count; i++) {
     const typeRoll = Math.random();
     let kind = "weapon";
-    if (typeRoll > 0.7) kind = "armor";
-    if (typeRoll > 0.9) kind = "med";
+    if (typeRoll > 0.72) kind = "armor";
+    if (typeRoll > 0.86) kind = "med";
+    if (typeRoll > 0.92) kind = "attachment";
+    if (typeRoll > 0.98 || Math.random() < vehicleRate) kind = "vehicle";
     loot.push({
       id: `loot-${i}`,
       x: rand(80, WORLD.w - 80),
       y: rand(80, WORLD.h - 80),
       kind,
       weapon: kind === "weapon" ? { ...WEAPONS[Math.floor(rand(0, WEAPONS.length))] } : null,
+      attachment: kind === "attachment" ? ATTACHMENTS[Math.floor(rand(0, ATTACHMENTS.length))] : null,
+      vehicleType: kind === "vehicle" ? "Strider" : null,
       taken: false,
     });
   }
   return loot;
 }
 
-function createObstacles() {
+function mulberry32(seed) {
+  let a = seed >>> 0;
+  return function () {
+    a |= 0;
+    a = a + 0x6d2b79f5 | 0;
+    let t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+
+function createObstacles(map) {
   const obs = [];
-  for (let i = 0; i < 20; i++) {
-    const w = rand(90, 180);
-    const h = rand(60, 140);
-    obs.push({
-      x: rand(150, WORLD.w - 150),
-      y: rand(150, WORLD.h - 150),
-      w,
-      h,
-    });
+  const seed = map?.seed || Math.floor(Math.random() * 99999);
+  const rnd = mulberry32(seed);
+  const r = (min, max) => rnd() * (max - min) + min;
+  const count = map?.type === "metro" ? 26 : map?.type === "harbor" ? 18 : 22;
+
+  for (let i = 0; i < count; i++) {
+    let w = r(90, 180);
+    let h = r(60, 140);
+    let x = r(150, WORLD.w - 150);
+    let y = r(150, WORLD.h - 150);
+
+    if (map?.type === "harbor") {
+      if (i % 3 === 0) {
+        w = r(180, 260);
+        h = r(40, 80);
+        x = r(160, WORLD.w - 160);
+        y = r(160, WORLD.h * 0.45);
+      } else {
+        x = r(160, WORLD.w - 160);
+        y = r(WORLD.h * 0.55, WORLD.h - 160);
+      }
+    }
+
+    if (map?.type === "metro") {
+      w = r(80, 140);
+      h = r(80, 140);
+      const grid = 220;
+      x = Math.round(x / grid) * grid;
+      y = Math.round(y / grid) * grid;
+    }
+
+    obs.push({ x, y, w, h });
   }
   return obs;
 }
 
 function resetGame() {
+  const modeKey = modeSelect?.value || "classic";
+  let mode = MODES[modeKey] || MODES.classic;
+  const wantsMp = (mpToggle && mpToggle.checked) || mode.arena;
+  if (wantsMp) {
+    mode = { ...mode, botCount: 0, lootCount: 0, vehicleRate: 0 };
+  }
+  GAME.mode = modeKey;
+  GAME.modeConfig = mode;
+  GAME.phases = buildPhases(mode.phaseScale || 1);
+  GAME.zoneDamage = mode.zoneDamage || 14;
+
+  const mapKey = mapSelect?.value || "ridge";
+  const map = MAPS[mapKey] || MAPS.ridge;
+  GAME.map = mapKey;
+  GAME.zone.center = { x: map.center.x, y: map.center.y };
+
   GAME.player = createPlayer();
   GAME.bots = [];
-  for (let i = 0; i < 28; i++) GAME.bots.push(createBot(i));
+  for (let i = 0; i < (mode.botCount || 0); i++) GAME.bots.push(createBot(i));
   GAME.bullets = [];
-  GAME.loot = createLoot();
-  GAME.obstacles = createObstacles();
+  GAME.loot = createLoot(mode.lootCount || 0, mode.vehicleRate || 0);
+  GAME.obstacles = createObstacles(map);
   GAME.zone.phaseIndex = 0;
   GAME.zone.phaseTime = 0;
-  GAME.zone.currentRadius = PHASES[0].radius;
-  GAME.zone.targetRadius = PHASES[1].radius;
+  GAME.zone.currentRadius = GAME.phases[0].radius;
+  GAME.zone.targetRadius = GAME.phases[1].radius;
   GAME.remaining = 1 + GAME.bots.length;
   GAME.matchEnded = false;
   GAME.paused = false;
@@ -867,8 +1266,9 @@ function moveWithCollisions(entity, nx, ny) {
 }
 
 function updateZone(dt) {
-  const phase = PHASES[GAME.zone.phaseIndex];
-  const nextPhase = PHASES[GAME.zone.phaseIndex + 1];
+  const phases = GAME.phases || PHASES;
+  const phase = phases[GAME.zone.phaseIndex];
+  const nextPhase = phases[GAME.zone.phaseIndex + 1];
   if (!nextPhase) return;
 
   GAME.zone.phaseTime += dt;
@@ -889,9 +1289,10 @@ function updateZone(dt) {
 }
 
 function applyZoneDamage(entity, dt) {
-  const d = dist(entity, CENTER);
+  const d = dist(entity, GAME.zone.center);
   if (d > GAME.zone.currentRadius) {
-    entity.health -= 14 * dt;
+    const dmg = GAME.zoneDamage || 14;
+    entity.health -= dmg * dt;
     if (entity.id === "player" && GAME.zonePulse <= 0) {
       GAME.zonePulse = 1.2;
       sfxZone();
@@ -936,10 +1337,7 @@ function fireBullet(shooter, angle) {
   }
 }
 
-function updatePlayer(dt, live) {
-  const p = GAME.player;
-  if (!p.alive) return;
-
+function getMoveVector() {
   let dx = 0;
   let dy = 0;
 
@@ -949,22 +1347,16 @@ function updatePlayer(dt, live) {
   if (GAME.keys["KeyD"] || GAME.keys["ArrowRight"]) dx += 1;
 
   if (GAME.touch.leftOrigin) {
-    const lx = GAME.touch.leftDelta.x;
-    const ly = GAME.touch.leftDelta.y;
-    dx += lx;
-    dy += ly;
+    dx += GAME.touch.leftDelta.x;
+    dy += GAME.touch.leftDelta.y;
   }
 
   const len = Math.hypot(dx, dy) || 1;
-  dx /= len;
-  dy /= len;
+  return { x: dx / len, y: dy / len };
+}
 
-  const nx = p.x + dx * p.speed * dt;
-  const ny = p.y + dy * p.speed * dt;
-  moveWithCollisions(p, nx, ny);
-
+function getAimAngle() {
   let aimAngle = Math.atan2(GAME.mouse.y - canvas.height / dpr / 2, GAME.mouse.x - canvas.width / dpr / 2);
-
   if (GAME.touch.rightOrigin) {
     const rx = GAME.touch.rightDelta.x;
     const ry = GAME.touch.rightDelta.y;
@@ -972,8 +1364,34 @@ function updatePlayer(dt, live) {
       aimAngle = Math.atan2(ry, rx);
     }
   }
+  return aimAngle;
+}
 
-  const wantsFire = GAME.mouse.down || (GAME.touch.rightOrigin && Math.hypot(GAME.touch.rightDelta.x, GAME.touch.rightDelta.y) > 0.15);
+function getWantsFire() {
+  return GAME.mouse.down || (GAME.touch.rightOrigin && Math.hypot(GAME.touch.rightDelta.x, GAME.touch.rightDelta.y) > 0.15);
+}
+
+function updatePlayer(dt, live) {
+  const p = GAME.player;
+  if (!p.alive) return;
+
+  const move = getMoveVector();
+  const dx = move.x;
+  const dy = move.y;
+
+  let speed = p.speed;
+  if (p.vehicle) {
+    p.vehicle.timer -= dt;
+    speed *= p.vehicle.speedMult;
+    if (p.vehicle.timer <= 0) p.vehicle = null;
+  }
+
+  const nx = p.x + dx * speed * dt;
+  const ny = p.y + dy * speed * dt;
+  moveWithCollisions(p, nx, ny);
+
+  const aimAngle = getAimAngle();
+  const wantsFire = getWantsFire();
   if (wantsFire && live) fireBullet(p, aimAngle);
 
   if (p.cooldown > 0) p.cooldown -= dt;
@@ -998,6 +1416,21 @@ function updatePlayer(dt, live) {
       if (item.kind === "weapon") equipWeapon(p, item.weapon);
       if (item.kind === "armor") p.armor = Math.min(50, p.armor + 25);
       if (item.kind === "med") p.medkits = Math.min(3, p.medkits + 1);
+      if (item.kind === "attachment" && item.attachment) {
+        if (!PROFILE.inventory.includes(item.attachment.id)) {
+          PROFILE.inventory.push(item.attachment.id);
+          saveProfile();
+          updateProfilePanel();
+        }
+        if (!PROFILE.equippedAttachments.includes(item.attachment.id)) {
+          PROFILE.equippedAttachments.push(item.attachment.id);
+          saveProfile();
+        }
+        showToast(`${item.attachment.name} acquired`);
+      }
+      if (item.kind === "vehicle") {
+        enterVehicle(p, item.vehicleType || "Strider");
+      }
     }
   }
 
@@ -1157,6 +1590,13 @@ function checkMatchEnd() {
 }
 
 function update(dt) {
+  if (GAME.multiplayer) {
+    updateWarmup(dt);
+    sendNetInput();
+    updateFeedback(dt);
+    return;
+  }
+
   updateWarmup(dt);
   const live = !GAME.warmupActive;
   if (live) updateZone(dt);
@@ -1201,7 +1641,7 @@ function drawZone(cam) {
   ctx.strokeStyle = "rgba(80,220,170,0.6)";
   ctx.lineWidth = 3;
   ctx.beginPath();
-  ctx.arc(CENTER.x - cam.x, CENTER.y - cam.y, GAME.zone.currentRadius, 0, Math.PI * 2);
+  ctx.arc(GAME.zone.center.x - cam.x, GAME.zone.center.y - cam.y, GAME.zone.currentRadius, 0, Math.PI * 2);
   ctx.stroke();
   ctx.restore();
 }
@@ -1222,6 +1662,8 @@ function drawLoot(cam) {
     if (item.kind === "weapon") ctx.fillStyle = "#ffd36b";
     if (item.kind === "armor") ctx.fillStyle = "#6bd0ff";
     if (item.kind === "med") ctx.fillStyle = "#78ff9b";
+    if (item.kind === "attachment") ctx.fillStyle = "#b48bff";
+    if (item.kind === "vehicle") ctx.fillStyle = "#ff8b3d";
     ctx.beginPath();
     ctx.arc(item.x - cam.x, item.y - cam.y, 6, 0, Math.PI * 2);
     ctx.fill();
@@ -1271,7 +1713,7 @@ function drawMinimap() {
   const scale = size / WORLD.w;
   ctx.strokeStyle = "rgba(80,220,170,0.8)";
   ctx.beginPath();
-  ctx.arc(x + CENTER.x * scale, y + CENTER.y * scale, GAME.zone.currentRadius * scale, 0, Math.PI * 2);
+  ctx.arc(x + GAME.zone.center.x * scale, y + GAME.zone.center.y * scale, GAME.zone.currentRadius * scale, 0, Math.PI * 2);
   ctx.stroke();
 
   for (const b of GAME.bots) {
@@ -1355,7 +1797,14 @@ function render() {
       ? `Ammo: Reloading ${GAME.player.reloadTimer.toFixed(1)}s`
       : `Ammo: ${GAME.player.ammoInMag}/${GAME.player.ammoReserve}`;
   }
-  hudRemain.textContent = `Remaining: ${GAME.remaining}  Kills: ${GAME.player.kills}`;
+  if (hudVehicle) {
+    hudVehicle.textContent = GAME.player.vehicle
+      ? `Vehicle: ${GAME.player.vehicle.type} ${GAME.player.vehicle.timer.toFixed(1)}s`
+      : "Vehicle: None";
+  }
+  const modeLabel = MODES[GAME.mode]?.name || "Classic";
+  const mapLabel = MAPS[GAME.map]?.name || "Ridgefront";
+  hudRemain.textContent = `Remaining: ${GAME.remaining}  Kills: ${GAME.player.kills}  | ${modeLabel} @ ${mapLabel}`;
 
   if (!GAME.player.alive) {
     ctx.fillStyle = "rgba(0,0,0,0.45)";
@@ -1433,12 +1882,21 @@ async function startGame() {
   updateTopbar();
   updateProfilePanel();
 
+  const modeKey = modeSelect?.value || "classic";
+  const mode = MODES[modeKey] || MODES.classic;
+  const wantsMp = (mpToggle && mpToggle.checked) || mode.arena;
+
   resetGame();
   initAudio();
   if (audioCtx && audioCtx.state === "suspended") {
     audioCtx.resume();
   }
   startWarmup(WARMUP_TIME);
+  if (wantsMp) {
+    startMultiplayer();
+  } else {
+    stopMultiplayer();
+  }
   GAME.running = true;
   GAME.lastTime = performance.now();
   overlay.classList.add("hidden");
@@ -1456,6 +1914,7 @@ function returnToLobby() {
   if (warmupPanel) warmupPanel.classList.add("hidden");
   GAME.warmupActive = false;
   GAME.warmupTimer = 0;
+  stopMultiplayer();
   overlay.classList.remove("hidden");
   render();
 }
@@ -1470,7 +1929,10 @@ offlineBtn.addEventListener("click", offlineMode);
 claimDailyBtn.addEventListener("click", claimDailyReward);
 claimDailyBtn2.addEventListener("click", claimDailyReward);
 if (actionHeal) actionHeal.addEventListener("click", () => useMedkit(GAME.player));
-if (actionSwap) actionSwap.addEventListener("click", () => swapWeapon(GAME.player));
+if (actionSwap) actionSwap.addEventListener("click", () => {
+  if (GAME.multiplayer) GAME.netSwap = true;
+  else swapWeapon(GAME.player);
+});
 
 profileBtn.addEventListener("click", () => {
   panelProfile.classList.remove("hidden");
@@ -1486,12 +1948,31 @@ storeBtn.addEventListener("click", () => {
 closeProfile.addEventListener("click", () => panelProfile.classList.add("hidden"));
 closeStore.addEventListener("click", () => panelStore.classList.add("hidden"));
 
+if (modeSelect) {
+  modeSelect.addEventListener("change", () => {
+    localStorage.setItem(MODE_KEY, modeSelect.value);
+  });
+}
+if (mapSelect) {
+  mapSelect.addEventListener("change", () => {
+    localStorage.setItem(MAP_KEY, mapSelect.value);
+  });
+}
+if (mpToggle) {
+  mpToggle.addEventListener("change", () => {
+    localStorage.setItem(MP_KEY, mpToggle.checked ? "1" : "0");
+  });
+}
+
 window.addEventListener("keydown", (e) => {
   GAME.keys[e.code] = true;
   if (e.code === "Digit1" && GAME.player) equipWeapon(GAME.player, WEAPONS[0]);
   if (e.code === "Digit2" && GAME.player) equipWeapon(GAME.player, WEAPONS[1]);
   if (e.code === "Digit3" && GAME.player) equipWeapon(GAME.player, WEAPONS[2]);
-  if (e.code === "KeyQ" && GAME.player) swapWeapon(GAME.player);
+  if (e.code === "KeyQ" && GAME.player) {
+    if (GAME.multiplayer) GAME.netSwap = true;
+    else swapWeapon(GAME.player);
+  }
   if (e.code === "KeyR" && GAME.player) startReload(GAME.player);
 });
 
@@ -1572,6 +2053,9 @@ canvas.addEventListener("touchend", (e) => {
 
 async function initUI() {
   nameInput.value = PROFILE.name;
+  if (modeSelect) modeSelect.value = localStorage.getItem(MODE_KEY) || "classic";
+  if (mapSelect) mapSelect.value = localStorage.getItem(MAP_KEY) || "ridge";
+  if (mpToggle) mpToggle.checked = localStorage.getItem(MP_KEY) === "1";
   updateTopbar();
   updateProfilePanel();
   updateDailyUI();

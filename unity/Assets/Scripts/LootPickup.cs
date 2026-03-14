@@ -4,7 +4,8 @@ public enum LootKind
 {
     Weapon,
     Armor,
-    Med
+    Med,
+    Vehicle
 }
 
 public class LootPickup : MonoBehaviour

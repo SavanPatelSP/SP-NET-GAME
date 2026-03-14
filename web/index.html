@@ -48,10 +48,32 @@
         <button class="trait" data-trait="medic">Medicall<br><span>Faster revive</span></button>
       </div>
 
+      <div class="mode-grid">
+        <label for="modeSelect">Mode</label>
+        <select id="modeSelect">
+          <option value="classic">Classic</option>
+          <option value="blitz">Blitz</option>
+          <option value="duo">Duo</option>
+          <option value="squad">Squad</option>
+          <option value="vehicle">Vehicle Rush</option>
+          <option value="arena">MP Arena (Beta)</option>
+        </select>
+        <label for="mapSelect">Map</label>
+        <select id="mapSelect">
+          <option value="ridge">Ridgefront</option>
+          <option value="harbor">Harborline</option>
+          <option value="metro">Metro Grid</option>
+        </select>
+        <label class="checkbox">
+          <input id="mpToggle" type="checkbox" />
+          Multiplayer (Beta)
+        </label>
+      </div>
+
       <button id="startBtn" class="start">Deploy</button>
       <div class="tips">
         <div><strong>Touch</strong>: left joystick move, right joystick aim/shoot</div>
-        <div><strong>Desktop</strong>: WASD move, mouse aim, click shoot, 1/2/3 swap</div>
+        <div><strong>Desktop</strong>: WASD move, mouse aim, click shoot, 1/2/3 equip, Q swap, R reload</div>
       </div>
     </div>
   </div>
@@ -86,6 +108,11 @@
       <div class="panel-section">
         <h3>Battle Pass</h3>
         <div id="battlePass" class="panel-text"></div>
+        <div id="battlePassTrack" class="panel-list"></div>
+      </div>
+      <div class="panel-section">
+        <h3>Inventory & Attachments</h3>
+        <div id="inventoryList" class="panel-list"></div>
       </div>
       <button id="claimDaily2" class="start small">Claim Daily</button>
       <div id="dailyStatus" class="panel-status"></div>
@@ -125,6 +152,7 @@
     <div class="stat" id="armor"></div>
     <div class="stat" id="weapon"></div>
     <div class="stat" id="ammo"></div>
+    <div class="stat" id="vehicle"></div>
     <div class="stat" id="remain"></div>
   </div>
 

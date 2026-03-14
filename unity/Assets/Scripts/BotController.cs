@@ -50,7 +50,7 @@ public class BotController : MonoBehaviour
             moveDir = dir;
         }
 
-        combatant.controller.Move(moveDir * combatant.speed * Time.deltaTime);
+        combatant.controller.Move(moveDir * combatant.speed * combatant.speedMult * Time.deltaTime);
 
         if (moveDir.sqrMagnitude > 0.1f)
         {
