@@ -21,6 +21,7 @@ const levelChip = document.getElementById("levelChip");
 const xpFill = document.getElementById("xpFill");
 const coinsChip = document.getElementById("coinsChip");
 const gemsChip = document.getElementById("gemsChip");
+const powerChip = document.getElementById("powerChip");
 const profileBtn = document.getElementById("profileBtn");
 const storeBtn = document.getElementById("storeBtn");
 
@@ -72,6 +73,8 @@ const WEAPONS = [
 
 const PROFILE_KEY = "spnet_profile_v101";
 const MISSION_KEY = "spnet_missions_v101";
+const POWER_OUT_MULT = 1.3;
+const POWER_IN_MULT = 0.8;
 const DEFAULT_PROFILE = {
   name: "Player",
   level: 1,
@@ -85,6 +88,7 @@ const DEFAULT_PROFILE = {
   battleTier: 1,
   battleXp: 0,
   inventory: [],
+  powerActive: false,
 };
 
 const LOCAL_MISSIONS = [
@@ -192,7 +196,9 @@ function loadProfile() {
     const raw = localStorage.getItem(PROFILE_KEY);
     if (!raw) return { ...DEFAULT_PROFILE };
     const data = JSON.parse(raw);
-    return { ...DEFAULT_PROFILE, ...data };
+    const merged = { ...DEFAULT_PROFILE, ...data };
+    merged.powerActive = (merged.inventory || []).includes("boost_power60");
+    return merged;
   } catch (e) {
     return { ...DEFAULT_PROFILE };
   }
@@ -258,6 +264,7 @@ function applyServerProfile(data) {
   PROFILE.coins = data.balances.coins;
   PROFILE.gems = data.balances.gems;
   PROFILE.inventory = data.inventory || [];
+  PROFILE.powerActive = PROFILE.inventory.includes("boost_power60");
   MISSIONS = data.missions || MISSIONS;
   OFFERS = data.offers || [];
   saveProfile();
@@ -325,6 +332,10 @@ function updateTopbar() {
   xpFill.style.width = `${pct}%`;
   coinsChip.textContent = `SP Coins ${PROFILE.coins}`;
   gemsChip.textContent = `SP Gems ${PROFILE.gems}`;
+  if (powerChip) {
+    if (PROFILE.powerActive) powerChip.classList.remove("hidden");
+    else powerChip.classList.add("hidden");
+  }
 }
 
 function updateProfilePanel() {
@@ -334,6 +345,7 @@ function updateProfilePanel() {
     `Streak: ${PROFILE.streak} days\n` +
     `Matches: ${PROFILE.matches}\n` +
     `Lifetime Kills: ${PROFILE.lifetimeKills}\n` +
+    `Power Boost: ${PROFILE.powerActive ? "Active (60%)" : "Inactive"}\n` +
     `Inventory: ${PROFILE.inventory.slice(0, 6).join(", ") || "None"}`;
 
   const battleNeed = battleXpToNext(PROFILE.battleTier);
@@ -415,6 +427,7 @@ async function spendOffer(offer) {
     PROFILE.coins = data.coins;
     PROFILE.gems = data.gems;
     PROFILE.inventory = data.inventory || PROFILE.inventory;
+    PROFILE.powerActive = PROFILE.inventory.includes("boost_power60");
     saveProfile();
     updateTopbar();
     updateProfilePanel();
@@ -433,6 +446,7 @@ async function spendOffer(offer) {
   PROFILE.coins -= offer.priceCoins || 0;
   PROFILE.gems -= offer.priceGems || 0;
   (offer.payload?.items || []).forEach((item) => PROFILE.inventory.push(item));
+  PROFILE.powerActive = PROFILE.inventory.includes("boost_power60");
   saveProfile();
   updateTopbar();
   updateProfilePanel();
@@ -447,6 +461,7 @@ function localOffers() {
     { id: "offer_xp", name: "XP Boost", priceCoins: 500, priceGems: 0, offerType: "boost", payload: { items: ["xp_boost_2h"] } },
     { id: "offer_attachment", name: "Attachment Pack", priceCoins: 350, priceGems: 0, offerType: "gear", payload: { items: ["att_stability", "att_scope"] } },
     { id: "offer_ability", name: "Ability Kit", priceCoins: 0, priceGems: 15, offerType: "ability", payload: { items: ["kit_sensorist"] } },
+    { id: "offer_power60", name: "Power Core (60% Boost)", priceCoins: 0, priceGems: 60, offerType: "power", payload: { items: ["boost_power60"] } },
   ];
   return offers.slice(day % 2, day % 2 + 3);
 }
@@ -582,6 +597,8 @@ function createPlayer() {
     cooldown: 0,
     kills: 0,
     alive: true,
+    damageOutMult: PROFILE.powerActive ? POWER_OUT_MULT : 1,
+    damageInMult: PROFILE.powerActive ? POWER_IN_MULT : 1,
   };
 }
 
@@ -604,6 +621,8 @@ function createBot(i) {
     target: null,
     thinkTime: 0,
     state: "wander",
+    damageOutMult: 1,
+    damageInMult: 1,
   };
 }
 
@@ -724,12 +743,13 @@ function fireBullet(shooter, angle) {
   const ang = angle + spread;
   const vx = Math.cos(ang) * w.speed;
   const vy = Math.sin(ang) * w.speed;
+  const outMult = shooter.damageOutMult || 1;
   GAME.bullets.push({
     x: shooter.x + Math.cos(ang) * shooter.r,
     y: shooter.y + Math.sin(ang) * shooter.r,
     vx,
     vy,
-    damage: w.damage,
+    damage: w.damage * outMult,
     life: w.range / w.speed,
     owner: shooter.id,
   });
@@ -875,7 +895,8 @@ function updateBullets(dt) {
     for (const t of allTargets) {
       if (!t.alive || t.id === b.owner) continue;
       if (dist(b, t) < t.r) {
-        let dmg = b.damage;
+        const inMult = t.damageInMult || 1;
+        let dmg = b.damage * inMult;
         if (t.armor > 0) {
           const absorbed = Math.min(t.armor, dmg * 0.6);
           t.armor -= absorbed;

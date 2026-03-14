@@ -12,6 +12,8 @@ public class Combatant : MonoBehaviour
     public bool alive = true;
     public WeaponDef weapon;
     public float cooldown;
+    public float damageOutMult = 1f;
+    public float damageInMult = 1f;
 
     [HideInInspector]
     public CharacterController controller;
@@ -19,7 +21,7 @@ public class Combatant : MonoBehaviour
     public void ApplyDamage(float amount)
     {
         if (!alive) return;
-        float dmg = amount;
+        float dmg = amount * damageInMult;
         if (armor > 0f)
         {
             float absorbed = Mathf.Min(armor, dmg * 0.6f);

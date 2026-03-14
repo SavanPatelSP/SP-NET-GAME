@@ -77,6 +77,15 @@ OFFER_SEED = [
         "payload": {"items": ["kit_sensorist"]},
         "hours": 14,
     },
+    {
+        "id": "offer_power60",
+        "name": "Power Core (60% Boost)",
+        "priceCoins": 0,
+        "priceGems": 60,
+        "offerType": "power",
+        "payload": {"items": ["boost_power60"]},
+        "hours": 24,
+    },
 ]
 
 
@@ -108,12 +117,13 @@ def init_db():
 
 
 def seed_offers(conn):
-    cur = conn.execute("SELECT COUNT(*) AS c FROM store_offers")
-    if cur.fetchone()["c"] > 0:
-        return
+    existing = conn.execute("SELECT id FROM store_offers").fetchall()
+    existing_ids = {row["id"] for row in existing}
 
     now = datetime.datetime.utcnow()
     for idx, offer in enumerate(OFFER_SEED):
+        if offer["id"] in existing_ids:
+            continue
         start = now + datetime.timedelta(hours=idx * 2)
         end = start + datetime.timedelta(hours=offer["hours"])
         conn.execute(

@@ -68,6 +68,8 @@ public class GameBootstrap : MonoBehaviour
     private bool cloudEnabled;
     private InputField emailField;
     private InputField passwordField;
+    private const float PowerOutMult = 1.3f;
+    private const float PowerInMult = 0.8f;
 
     private const string KeyGems = "SPNET_GEMS";
     private const string KeyCoins = "SPNET_COINS";
@@ -83,6 +85,7 @@ public class GameBootstrap : MonoBehaviour
     private const string KeyMissionsDate = "SPNET_MISSIONS_DATE";
     private const string KeyMissionsJson = "SPNET_MISSIONS_JSON";
     private const string KeyAuthToken = "SPNET_AUTH_TOKEN";
+    private const string KeyPowerBoost = "SPNET_POWER_BOOST";
     private int spGems;
     private int spCoins;
     private int level;
@@ -92,6 +95,7 @@ public class GameBootstrap : MonoBehaviour
     private int lifetimeKills;
     private int battleXp;
     private int battleTier;
+    private bool powerBoost;
     private string playerName = "LocalPlayer";
     private string lastRewardDate = "";
     private bool matchRewarded;
@@ -174,6 +178,7 @@ public class GameBootstrap : MonoBehaviour
         public CloudUser user;
         public CloudProfile profile;
         public CloudBalances balances;
+        public string[] inventory;
     }
 
     [Serializable]
@@ -340,6 +345,7 @@ public class GameBootstrap : MonoBehaviour
         lifetimeKills = Mathf.Max(0, PlayerPrefs.GetInt(KeyLifetimeKills, 0));
         battleXp = Mathf.Max(0, PlayerPrefs.GetInt(KeyBattleXp, 0));
         battleTier = Mathf.Max(1, PlayerPrefs.GetInt(KeyBattleTier, 1));
+        powerBoost = PlayerPrefs.GetInt(KeyPowerBoost, 0) == 1;
     }
 
     private void SaveProfile()
@@ -353,6 +359,7 @@ public class GameBootstrap : MonoBehaviour
         PlayerPrefs.SetInt(KeyLifetimeKills, lifetimeKills);
         PlayerPrefs.SetInt(KeyBattleXp, battleXp);
         PlayerPrefs.SetInt(KeyBattleTier, battleTier);
+        PlayerPrefs.SetInt(KeyPowerBoost, powerBoost ? 1 : 0);
         PlayerPrefs.Save();
     }
 
@@ -639,6 +646,8 @@ public class GameBootstrap : MonoBehaviour
         combatant.armor = 0f;
         combatant.speed = 10.5f;
         combatant.weapon = weaponDefs[0];
+        combatant.damageOutMult = powerBoost ? PowerOutMult : 1f;
+        combatant.damageInMult = powerBoost ? PowerInMult : 1f;
 
         obj.AddComponent<PlayerController>();
 
@@ -872,7 +881,7 @@ public class GameBootstrap : MonoBehaviour
         bm.owner = shooter;
         bm.direction = dir;
         bm.speed = w.bulletSpeed;
-        bm.damage = w.damage;
+        bm.damage = w.damage * shooter.damageOutMult;
         bm.life = w.range / Mathf.Max(1f, w.bulletSpeed);
 
         worldObjects.Add(bullet);
@@ -964,7 +973,8 @@ public class GameBootstrap : MonoBehaviour
             $"Level: {level}  XP: {xp}/{XpToNext(level)}\\n" +
             $"Streak: {streak} days\\n" +
             $"Matches: {matches}\\n" +
-            $"Lifetime Kills: {lifetimeKills}";
+            $"Lifetime Kills: {lifetimeKills}\\n" +
+            $"Power Boost: {(powerBoost ? "Active (60%)" : "Inactive")}";
 
         if (battlePassText != null)
         {
@@ -1118,6 +1128,15 @@ public class GameBootstrap : MonoBehaviour
             spCoins = resp.balances.coins;
             spGems = resp.balances.gems;
         }
+        if (resp.inventory != null)
+        {
+            powerBoost = Array.Exists(resp.inventory, item => item == "boost_power60");
+        }
+        if (player != null && player.combatant != null)
+        {
+            player.combatant.damageOutMult = powerBoost ? PowerOutMult : 1f;
+            player.combatant.damageInMult = powerBoost ? PowerInMult : 1f;
+        }
         SaveProfile();
         SaveEconomy();
         UpdateEconomyUI();
@@ -1262,7 +1281,7 @@ public class GameBootstrap : MonoBehaviour
         CreateButton(canvas.transform, "Admin", new Vector2(-12, -160), new Vector2(90, 28), TextAnchor.UpperRight, ToggleAdmin);
         CreateButton(canvas.transform, "Cloud", new Vector2(-12, -192), new Vector2(90, 28), TextAnchor.UpperRight, ToggleAuthPanel);
 
-        storePanel = CreatePanel(canvas.transform, "StorePanel", Vector2.zero, new Vector2(320, 230), TextAnchor.MiddleCenter, new Color(0f, 0f, 0f, 0.7f));
+        storePanel = CreatePanel(canvas.transform, "StorePanel", Vector2.zero, new Vector2(320, 260), TextAnchor.MiddleCenter, new Color(0f, 0f, 0f, 0.7f));
         adminPanel = CreatePanel(canvas.transform, "AdminPanel", Vector2.zero, new Vector2(320, 230), TextAnchor.MiddleCenter, new Color(0f, 0f, 0f, 0.7f));
         profilePanel = CreatePanel(canvas.transform, "ProfilePanel", Vector2.zero, new Vector2(320, 280), TextAnchor.MiddleCenter, new Color(0f, 0f, 0f, 0.7f));
         authPanel = CreatePanel(canvas.transform, "AuthPanel", Vector2.zero, new Vector2(320, 240), TextAnchor.MiddleCenter, new Color(0f, 0f, 0f, 0.7f));
@@ -1370,6 +1389,30 @@ public class GameBootstrap : MonoBehaviour
                 return;
             }
             if (SpendCoins(500)) SetStoreStatus("XP Boost activated.");
+        });
+
+        Text item4 = CreateText(parent, "Item4", new Vector2(12, -155), 13, TextAnchor.UpperLeft);
+        item4.text = "Power Core (60% Boost) (60 SP Gems)";
+        CreateButton(parent, "Buy", new Vector2(-12, -151), new Vector2(80, 26), TextAnchor.UpperRight, () =>
+        {
+            if (cloudEnabled)
+            {
+                StartCoroutine(BuyOfferCloud("offer_power60", "Power Boost active."));
+                return;
+            }
+            if (SpendGems(60))
+            {
+                powerBoost = true;
+                SaveProfile();
+                UpdateEconomyUI();
+                UpdateProfileUI();
+                if (player != null && player.combatant != null)
+                {
+                    player.combatant.damageOutMult = PowerOutMult;
+                    player.combatant.damageInMult = PowerInMult;
+                }
+                SetStoreStatus("Power Boost active.");
+            }
         });
 
         storeStatusText = CreateText(parent, "StoreStatus", new Vector2(0, 12), 12, TextAnchor.LowerCenter);
