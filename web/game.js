@@ -174,6 +174,8 @@ const GAME = {
   lastTime: 0,
   warmupActive: false,
   warmupTimer: 0,
+  warmupStartedAt: 0,
+  warmupDuration: 0,
   hitMarker: 0,
   damageFlash: 0,
   knockFlash: 0,
@@ -524,6 +526,8 @@ function sfxZone() { playTone(160, 0.12, "sine", 0.12); }
 function startWarmup(seconds) {
   GAME.warmupActive = true;
   GAME.warmupTimer = seconds;
+  GAME.warmupDuration = seconds;
+  GAME.warmupStartedAt = performance.now();
   if (warmupPanel) warmupPanel.classList.remove("hidden");
   if (warmupText) warmupText.textContent = `Deploying in ${Math.ceil(seconds)}...`;
 }
@@ -532,6 +536,11 @@ function updateWarmup(dt) {
   if (!GAME.warmupActive) return;
   if (!GAME.multiplayer || !NET.connected) {
     GAME.warmupTimer = Math.max(0, GAME.warmupTimer - dt);
+  }
+  const elapsed = (performance.now() - (GAME.warmupStartedAt || performance.now())) / 1000;
+  const maxWarmup = (GAME.warmupDuration || WARMUP_TIME) + 1.5;
+  if (elapsed >= maxWarmup) {
+    GAME.warmupTimer = 0;
   }
   if (warmupText) warmupText.textContent = `Deploying in ${Math.max(1, Math.ceil(GAME.warmupTimer))}...`;
   if (GAME.warmupTimer <= 0) {
@@ -727,8 +736,13 @@ function handleNetMessage(msg) {
     return;
   }
   if (msg.type === "warmup") {
+    const wasActive = GAME.warmupActive;
     GAME.warmupActive = msg.remaining > 0;
     GAME.warmupTimer = msg.remaining || 0;
+    if (GAME.warmupActive && !wasActive) {
+      GAME.warmupStartedAt = performance.now();
+      GAME.warmupDuration = msg.remaining || WARMUP_TIME;
+    }
     if (GAME.warmupActive && warmupPanel) warmupPanel.classList.remove("hidden");
     if (!GAME.warmupActive && warmupPanel) warmupPanel.classList.add("hidden");
     return;
@@ -1283,6 +1297,8 @@ function resetGame() {
   GAME.remaining = 1 + GAME.bots.length;
   GAME.matchEnded = false;
   GAME.paused = false;
+  GAME.warmupStartedAt = 0;
+  GAME.warmupDuration = 0;
   GAME.warmupActive = false;
   GAME.warmupTimer = 0;
   GAME.hitMarker = 0;
@@ -1974,6 +1990,8 @@ function returnToLobby() {
   if (warmupPanel) warmupPanel.classList.add("hidden");
   GAME.warmupActive = false;
   GAME.warmupTimer = 0;
+  GAME.warmupStartedAt = 0;
+  GAME.warmupDuration = 0;
   stopMultiplayer();
   overlay.classList.remove("hidden");
   render();
