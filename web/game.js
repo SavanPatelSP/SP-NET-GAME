@@ -57,6 +57,7 @@ const warmupText = document.getElementById("warmupText");
 const killfeed = document.getElementById("killfeed");
 const actionHeal = document.getElementById("actionHeal");
 const actionSwap = document.getElementById("actionSwap");
+const actionCapture = document.getElementById("actionCapture");
 
 let dpr = Math.max(1, window.devicePixelRatio || 1);
 let audioCtx = null;
@@ -616,6 +617,21 @@ function enterVehicle(p, type = "Strider") {
   if (!p) return;
   p.vehicle = { type, speedMult: 1.6, timer: 8 };
   showToast(`${type} engaged`);
+}
+
+function captureScreenshot() {
+  try {
+    const dataUrl = canvas.toDataURL("image/png");
+    const link = document.createElement("a");
+    link.href = dataUrl;
+    link.download = `spnet_${Date.now()}.png`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    showToast("Screenshot saved");
+  } catch (e) {
+    showToast("Screenshot failed");
+  }
 }
 
 function startMultiplayer() {
@@ -1943,6 +1959,7 @@ if (actionSwap) actionSwap.addEventListener("click", () => {
   if (GAME.multiplayer) GAME.netSwap = true;
   else swapWeapon(GAME.player);
 });
+if (actionCapture) actionCapture.addEventListener("click", captureScreenshot);
 
 profileBtn.addEventListener("click", () => {
   panelProfile.classList.remove("hidden");
@@ -1984,6 +2001,7 @@ window.addEventListener("keydown", (e) => {
     else swapWeapon(GAME.player);
   }
   if (e.code === "KeyR" && GAME.player) startReload(GAME.player);
+  if (e.code === "KeyP") captureScreenshot();
 });
 
 window.addEventListener("keyup", (e) => {
