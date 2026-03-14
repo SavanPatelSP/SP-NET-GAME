@@ -18,6 +18,15 @@ python3 rt_server.py
 ```
 Realtime server runs at `ws://localhost:8788`.
 
+## Gateway (Single-Port Online)
+This combines web + API + WS on one port for ngrok.
+```bash
+cd /Users/savanpatel/Documents/SP-NET-GAME/backend
+python3 -m pip install -r requirements.txt
+python3 gateway.py --port 8090
+```
+Gateway runs at `http://localhost:8090`.
+
 ## Create Admin User
 ```bash
 cd /Users/savanpatel/Documents/SP-NET-GAME/backend

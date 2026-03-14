@@ -29,6 +29,14 @@ python3 rt_server.py
 ```
 Realtime WS: ws://localhost:8788
 
+## Quick Start (Gateway for Ngrok)
+```bash
+cd backend
+python3 -m pip install -r requirements.txt
+python3 gateway.py --port 8090
+```
+Gateway: http://localhost:8090
+
 ## Quick Start (Web)
 ```bash
 cd web
