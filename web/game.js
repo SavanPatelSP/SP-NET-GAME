@@ -222,6 +222,7 @@ const NET = {
   state: null,
   lastStateAt: 0,
   inputSeq: 0,
+  connectTimer: null,
   serverUrl: localStorage.getItem("spnet_ws") || DEFAULT_WS,
 };
 
@@ -642,12 +643,30 @@ function startMultiplayer() {
   NET.selfId = null;
   NET.state = null;
   NET.inputSeq = 0;
+  if (NET.connectTimer) {
+    clearTimeout(NET.connectTimer);
+    NET.connectTimer = null;
+  }
 
   try {
     const ws = new WebSocket(NET.serverUrl);
     NET.socket = ws;
+    NET.connectTimer = setTimeout(() => {
+      if (!NET.connected) {
+        stopMultiplayer();
+        showToast("Multiplayer offline - starting local match.");
+        // Allow local warmup timer to tick down.
+        if (GAME.warmupActive && GAME.warmupTimer <= 0) {
+          GAME.warmupTimer = WARMUP_TIME;
+        }
+      }
+    }, 3500);
     ws.onopen = () => {
       NET.connected = true;
+      if (NET.connectTimer) {
+        clearTimeout(NET.connectTimer);
+        NET.connectTimer = null;
+      }
       ws.send(JSON.stringify({ type: "hello", name: PROFILE.name || "Player", version: "v1.0.1" }));
       showToast("Matchmaking...");
     };
@@ -667,11 +686,19 @@ function startMultiplayer() {
       NET.connected = false;
       NET.enabled = false;
       GAME.multiplayer = false;
+      if (NET.connectTimer) {
+        clearTimeout(NET.connectTimer);
+        NET.connectTimer = null;
+      }
       showToast("Multiplayer disconnected.");
     };
   } catch (e) {
     GAME.multiplayer = false;
     NET.enabled = false;
+    if (NET.connectTimer) {
+      clearTimeout(NET.connectTimer);
+      NET.connectTimer = null;
+    }
     showToast("Multiplayer server unavailable.");
   }
 }
@@ -685,6 +712,10 @@ function stopMultiplayer() {
   NET.connected = false;
   NET.selfId = null;
   GAME.multiplayer = false;
+  if (NET.connectTimer) {
+    clearTimeout(NET.connectTimer);
+    NET.connectTimer = null;
+  }
 }
 
 function handleNetMessage(msg) {
