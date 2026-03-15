@@ -106,7 +106,7 @@ const FF_SETTINGS = {
   damageFlash: 0.3,
 };
 const FORCE_SKIP_WARMUP = true;
-const BUILD_ID = "2026-03-15.12";
+const BUILD_ID = "2026-03-15.13";
 if (apiParam) localStorage.setItem("spnet_api", apiParam);
 if (wsParam) localStorage.setItem("spnet_ws", wsParam);
 
@@ -120,7 +120,7 @@ let allowAutoRestart = AUTO_RESTART;
 if (PANIC_MODE) document.body.classList.add("panic-mode");
 if (panicLobbyBtn && PANIC_MODE) {
   panicLobbyBtn.classList.add("big");
-  panicLobbyBtn.setAttribute("href", "index.html?panic=1&v=20260315t");
+  panicLobbyBtn.setAttribute("href", "index.html?panic=1&v=20260315u");
 }
 
 window.addEventListener("error", (e) => {
@@ -1806,6 +1806,12 @@ function endMatch(won) {
       `Kills: ${GAME.player.kills}\n` +
       `Rewards: +${rewards.xpEarned} XP, +${rewards.coinsEarned} Coins${won ? `, +${rewards.gemsEarned} Gems` : ""}`;
     summaryPanel.classList.remove("hidden");
+    if (PANIC_MODE) {
+      setTimeout(() => {
+        showToast("Returning to lobby...");
+        forceReloadToLobby();
+      }, 900);
+    }
   });
 }
 
@@ -2185,11 +2191,11 @@ function returnToLobby() {
 }
 
 function forceReloadToLobby() {
-  const params = new URLSearchParams(window.location.search);
-  params.set("autostart", "0");
-  params.set("panic", "1");
-  const next = `${window.location.pathname}?${params.toString()}`;
-  window.location.href = next;
+  const next = new URL("index.html", window.location.href);
+  next.searchParams.set("autostart", "0");
+  next.searchParams.set("panic", "1");
+  next.searchParams.set("v", "20260315u");
+  window.location.href = next.toString();
 }
 
 startBtn.addEventListener("click", startGame);
