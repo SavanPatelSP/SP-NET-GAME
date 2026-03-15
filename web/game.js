@@ -197,7 +197,7 @@ const GAME = {
   mode: "classic",
   map: "ridge",
   modeConfig: MODES.classic,
-  phases: buildPhases(1),
+  phases: [],
   zoneDamage: 14,
   multiplayer: false,
   netSwap: false,
@@ -259,6 +259,8 @@ function buildPhases(scale = 1) {
     radius: p.radius,
   }));
 }
+
+GAME.phases = buildPhases(1);
 
 function resize() {
   const rect = canvas.getBoundingClientRect();
