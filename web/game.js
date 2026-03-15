@@ -93,6 +93,7 @@ const AUTO_START = urlParams.get("autostart") === "1";
 const FORCE_OFFLINE = urlParams.get("offline") === "1";
 const SKIP_WARMUP = urlParams.get("nowarmup") === "1";
 const AUTO_RESTART = urlParams.get("loop") === "1";
+const PANIC_MODE = urlParams.get("panic") === "1";
 const LOGIC_PROFILE = "ff";
 const FF_SETTINGS = {
   moveMult: 1.08,
@@ -105,7 +106,7 @@ const FF_SETTINGS = {
   damageFlash: 0.3,
 };
 const FORCE_SKIP_WARMUP = true;
-const BUILD_ID = "2026-03-15.5";
+const BUILD_ID = "2026-03-15.6";
 if (apiParam) localStorage.setItem("spnet_api", apiParam);
 if (wsParam) localStorage.setItem("spnet_ws", wsParam);
 
@@ -115,6 +116,8 @@ const API_BASE = localStorage.getItem("spnet_api") || DEFAULT_API;
 let authToken = localStorage.getItem("spnet_token") || "";
 let onlineMode = false;
 let allowAutoRestart = AUTO_RESTART;
+
+if (panicLobbyBtn && PANIC_MODE) panicLobbyBtn.classList.add("big");
 
 window.addEventListener("error", (e) => {
   const msg = e?.message || "Unknown error";
@@ -2195,6 +2198,19 @@ window.addEventListener("keydown", (e) => {
     manualReturnToLobby();
   }
 });
+
+document.addEventListener("dblclick", () => {
+  if (!GAME.running) return;
+  manualReturnToLobby();
+});
+
+document.addEventListener("touchstart", (e) => {
+  if (!GAME.running) return;
+  if (e.touches && e.touches.length >= 2) {
+    e.preventDefault();
+    manualReturnToLobby();
+  }
+}, { passive: false });
 
 loginBtn.addEventListener("click", login);
 registerBtn.addEventListener("click", register);
