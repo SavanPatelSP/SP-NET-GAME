@@ -107,7 +107,7 @@ const FF_SETTINGS = {
   hitMarker: 0.18,
   damageFlash: 0.3,
 };
-const BUILD_ID = "2026-03-15.14-play";
+const BUILD_ID = "2026-03-15.15-play";
 if (apiParam) localStorage.setItem("spnet_api", apiParam);
 if (wsParam) localStorage.setItem("spnet_ws", wsParam);
 
@@ -118,6 +118,7 @@ let authToken = localStorage.getItem("spnet_token") || "";
 let onlineMode = false;
 let allowAutoRestart = AUTO_RESTART;
 
+if (PANIC_MODE) document.body.classList.add("panic-mode");
 if (panicLobbyBtn && PANIC_MODE) panicLobbyBtn.classList.add("big");
 
 window.addEventListener("error", (e) => {
@@ -2233,11 +2234,26 @@ function returnToLobby() {
   render();
 }
 
+function forceReloadToLobby() {
+  const params = new URLSearchParams(window.location.search);
+  params.set("autostart", "0");
+  params.set("panic", "1");
+  const next = `${window.location.pathname}?${params.toString()}`;
+  window.location.href = next;
+}
+
 startBtn.addEventListener("click", startGame);
 
 function manualReturnToLobby() {
   allowAutoRestart = false;
+  showToast("Returning to lobby...");
   returnToLobby();
+  setTimeout(() => {
+    if (document.body.classList.contains("ingame")) {
+      showToast("Reloading lobby...");
+      forceReloadToLobby();
+    }
+  }, 400);
 }
 
 summaryBtn.addEventListener("click", manualReturnToLobby);
@@ -2276,6 +2292,9 @@ document.addEventListener("touchstart", (e) => {
     manualReturnToLobby();
   }
 }, { passive: false });
+
+window.forceLobby = manualReturnToLobby;
+window.forceReloadToLobby = forceReloadToLobby;
 
 loginBtn.addEventListener("click", login);
 registerBtn.addEventListener("click", register);

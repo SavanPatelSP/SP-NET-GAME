@@ -99,6 +99,12 @@ body.ingame .panic-lobby {
   gap: 6px;
 }
 
+body.panic-mode .panic-lobby {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .panic-lobby.big {
   top: auto;
   left: 50%;
