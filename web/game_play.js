@@ -93,7 +93,7 @@ const FORCE_OFFLINE = urlParams.get("offline") === "1";
 const SKIP_WARMUP = urlParams.get("nowarmup") === "1";
 const FORCE_SKIP_WARMUP = true;
 const FORCE_AUTOSTART = true;
-const BUILD_ID = "2026-03-15.9-play";
+const BUILD_ID = "2026-03-15.10-play";
 if (apiParam) localStorage.setItem("spnet_api", apiParam);
 if (wsParam) localStorage.setItem("spnet_ws", wsParam);
 
@@ -1274,13 +1274,18 @@ function createPlayer() {
 
 function createBot(i, player) {
   const weapon = { ...WEAPONS[Math.floor(rand(0, WEAPONS.length))] };
-  let x = rand(200, WORLD.w - 200);
-  let y = rand(200, WORLD.h - 200);
+  const center = GAME.zone?.center || WORLD_CENTER;
+  const baseRadius = Math.max(240, (GAME.zone?.currentRadius || 1000) - 120);
+  let x = center.x;
+  let y = center.y;
   if (player) {
     let tries = 0;
-    while (tries < 12 && dist({ x, y }, player) < 320) {
-      x = rand(200, WORLD.w - 200);
-      y = rand(200, WORLD.h - 200);
+    while (tries < 16) {
+      const ang = rand(0, Math.PI * 2);
+      const r = rand(140, baseRadius);
+      x = clamp(center.x + Math.cos(ang) * r, 120, WORLD.w - 120);
+      y = clamp(center.y + Math.sin(ang) * r, 120, WORLD.h - 120);
+      if (dist({ x, y }, player) >= 340) break;
       tries += 1;
     }
   }
@@ -1495,6 +1500,7 @@ function updateZone(dt) {
 }
 
 function applyZoneDamage(entity, dt) {
+  if (GAME.matchTime < 12) return;
   if (entity.id === "player" && GAME.spawnProtection > 0) return;
   const d = dist(entity, GAME.zone.center);
   if (d > GAME.zone.currentRadius) {
@@ -1798,11 +1804,19 @@ function endMatch(won) {
       `Kills: ${GAME.player.kills}\n` +
       `Rewards: +${rewards.xpEarned} XP, +${rewards.coinsEarned} Coins${won ? `, +${rewards.gemsEarned} Gems` : ""}`;
     summaryPanel.classList.remove("hidden");
+    if (FORCE_AUTOSTART) {
+      setTimeout(() => {
+        if (summaryPanel && !summaryPanel.classList.contains("hidden")) {
+          returnToLobby();
+          setTimeout(() => startGame(), 200);
+        }
+      }, 2000);
+    }
   });
 }
 
 function checkMatchEnd() {
-  if (GAME.matchTime < 6) return;
+  if (GAME.matchTime < 12) return;
   const won = GAME.player.alive && GAME.remaining === 1;
   const eliminated = !GAME.player.alive;
   if (won || eliminated) endMatch(won);
@@ -2181,6 +2195,22 @@ function returnToLobby() {
 
 startBtn.addEventListener("click", startGame);
 summaryBtn.addEventListener("click", returnToLobby);
+summaryPanel.addEventListener("click", () => {
+  returnToLobby();
+  if (FORCE_AUTOSTART) setTimeout(() => startGame(), 200);
+});
+summaryPanel.addEventListener("touchstart", (e) => {
+  e.preventDefault();
+  returnToLobby();
+  if (FORCE_AUTOSTART) setTimeout(() => startGame(), 200);
+}, { passive: false });
+window.addEventListener("keydown", (e) => {
+  if (!summaryPanel || summaryPanel.classList.contains("hidden")) return;
+  if (e.key === "Enter" || e.key === " ") {
+    returnToLobby();
+    if (FORCE_AUTOSTART) setTimeout(() => startGame(), 200);
+  }
+});
 
 loginBtn.addEventListener("click", login);
 registerBtn.addEventListener("click", register);
