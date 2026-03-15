@@ -73,7 +73,7 @@ const FORCE_OFFLINE = urlParams.get("offline") === "1";
 const SKIP_WARMUP = urlParams.get("nowarmup") === "1";
 const FORCE_SKIP_WARMUP = true;
 const FORCE_AUTOSTART = true;
-const BUILD_ID = "2026-03-15.5-play";
+const BUILD_ID = "2026-03-15.6-play";
 if (apiParam) localStorage.setItem("spnet_api", apiParam);
 if (wsParam) localStorage.setItem("spnet_ws", wsParam);
 
@@ -195,6 +195,8 @@ const GAME = {
   warmupStartedAt: 0,
   warmupDuration: 0,
   warmupTimeout: null,
+  matchTime: 0,
+  spawnProtection: 0,
   hitMarker: 0,
   damageFlash: 0,
   knockFlash: 0,
@@ -1250,17 +1252,27 @@ function createPlayer() {
   };
 }
 
-function createBot(i) {
+function createBot(i, player) {
   const weapon = { ...WEAPONS[Math.floor(rand(0, WEAPONS.length))] };
+  let x = rand(200, WORLD.w - 200);
+  let y = rand(200, WORLD.h - 200);
+  if (player) {
+    let tries = 0;
+    while (tries < 12 && dist({ x, y }, player) < 320) {
+      x = rand(200, WORLD.w - 200);
+      y = rand(200, WORLD.h - 200);
+      tries += 1;
+    }
+  }
   return {
     id: `bot-${i}`,
-    x: rand(200, WORLD.w - 200),
-    y: rand(200, WORLD.h - 200),
+    x,
+    y,
     vx: 0,
     vy: 0,
     r: 13,
     speed: rand(170, 200),
-    health: rand(80, 110),
+    health: rand(90, 120),
     maxHealth: 110,
     armor: Math.random() < 0.4 ? 25 : 0,
     weapon,
@@ -1379,7 +1391,7 @@ function resetGame() {
 
   GAME.player = createPlayer();
   GAME.bots = [];
-  for (let i = 0; i < (mode.botCount || 0); i++) GAME.bots.push(createBot(i));
+  for (let i = 0; i < (mode.botCount || 0); i++) GAME.bots.push(createBot(i, GAME.player));
   GAME.bullets = [];
   GAME.loot = createLoot(mode.lootCount || 0, mode.vehicleRate || 0);
   GAME.obstacles = createObstacles(map);
@@ -1390,6 +1402,8 @@ function resetGame() {
   GAME.remaining = 1 + GAME.bots.length;
   GAME.matchEnded = false;
   GAME.paused = false;
+  GAME.matchTime = 0;
+  GAME.spawnProtection = 4;
   GAME.warmupStartedAt = 0;
   GAME.warmupDuration = 0;
   if (GAME.warmupTimeout) {
@@ -1461,6 +1475,7 @@ function updateZone(dt) {
 }
 
 function applyZoneDamage(entity, dt) {
+  if (entity.id === "player" && GAME.spawnProtection > 0) return;
   const d = dist(entity, GAME.zone.center);
   if (d > GAME.zone.currentRadius) {
     const dmg = GAME.zoneDamage || 14;
@@ -1580,6 +1595,9 @@ function updatePlayer(dt, live) {
 
   if (live) applyZoneDamage(p, dt);
   if (p.health <= 0) p.alive = false;
+  if (GAME.spawnProtection > 0) {
+    p.health = Math.max(p.health, 1);
+  }
 
   for (const item of GAME.loot) {
     if (item.taken) continue;
@@ -1699,6 +1717,7 @@ function updateBullets(dt) {
   for (const b of GAME.bullets) {
     for (const t of allTargets) {
       if (!t.alive || t.id === b.owner) continue;
+      if (t.id === "player" && GAME.spawnProtection > 0) continue;
       if (dist(b, t) < t.r) {
         const inMult = t.damageInMult || 1;
         let dmg = b.damage * inMult;
@@ -1756,6 +1775,7 @@ function endMatch(won) {
 }
 
 function checkMatchEnd() {
+  if (GAME.matchTime < 6) return;
   const won = GAME.player.alive && GAME.remaining === 1;
   const eliminated = !GAME.player.alive;
   if (won || eliminated) endMatch(won);
@@ -1771,6 +1791,12 @@ function update(dt) {
 
   updateWarmup(dt);
   const live = !GAME.warmupActive;
+  if (live) {
+    GAME.matchTime += dt;
+    if (GAME.spawnProtection > 0) {
+      GAME.spawnProtection = Math.max(0, GAME.spawnProtection - dt);
+    }
+  }
   if (live) updateZone(dt);
   updatePlayer(dt, live);
   updateBots(dt, live);
