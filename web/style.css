@@ -125,6 +125,20 @@ body.summary-open #summary {
   pointer-events: auto;
 }
 
+.force-lobby-full {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: none;
+  background: transparent;
+  pointer-events: auto;
+}
+
+body.summary-open .force-lobby-full,
+body.panic-mode .force-lobby-full {
+  display: block;
+}
+
 .panic-lobby.big {
   top: auto;
   left: 50%;

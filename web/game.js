@@ -106,7 +106,7 @@ const FF_SETTINGS = {
   damageFlash: 0.3,
 };
 const FORCE_SKIP_WARMUP = true;
-const BUILD_ID = "2026-03-15.16";
+const BUILD_ID = "2026-03-15.17";
 if (apiParam) localStorage.setItem("spnet_api", apiParam);
 if (wsParam) localStorage.setItem("spnet_ws", wsParam);
 
@@ -120,7 +120,7 @@ let allowAutoRestart = AUTO_RESTART;
 if (PANIC_MODE) document.body.classList.add("panic-mode");
 if (panicLobbyBtn && PANIC_MODE) {
   panicLobbyBtn.classList.add("big");
-  panicLobbyBtn.setAttribute("href", "index.html?panic=1&v=20260315x");
+  panicLobbyBtn.setAttribute("href", "index.html?panic=1&v=20260315y");
 }
 
 window.addEventListener("error", (e) => {
@@ -2194,7 +2194,7 @@ function forceReloadToLobby() {
   const next = new URL("index.html", window.location.href);
   next.searchParams.set("autostart", "0");
   next.searchParams.set("panic", "1");
-  next.searchParams.set("v", "20260315x");
+  next.searchParams.set("v", "20260315y");
   window.location.replace(next.toString());
 }
 
