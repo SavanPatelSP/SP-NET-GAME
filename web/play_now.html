@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <title>SP NET GAMERS v1.0.1 (Play Now)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600&family=Space+Grotesk:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=20260315c" />
+</head>
+<body>
+  <div id="overlay" class="overlay">
+    <div class="card">
+      <div class="badge">Season Zero</div>
+      <h1>SP NET GAMERS</h1>
+      <p class="subtitle">Fast tactical battle-royale prototype (original design)</p>
+      <p class="version">Version v1.0.1 (Play Now) <span id="buildTag"></span></p>
+
+      <div class="profile-setup">
+        <label for="nameInput">Commander Name</label>
+        <input id="nameInput" type="text" maxlength="14" placeholder="Your name" />
+      </div>
+
+      <div class="profile-setup">
+        <label for="emailInput">Email</label>
+        <input id="emailInput" type="email" placeholder="you@example.com" />
+        <label for="passwordInput">Password</label>
+        <input id="passwordInput" type="password" placeholder="********" />
+        <div class="account-actions">
+          <button id="loginBtn" class="ghost">Login</button>
+          <button id="registerBtn" class="ghost">Create Account</button>
+          <button id="offlineBtn" class="ghost">Play Offline</button>
+        </div>
+        <div id="authStatus" class="panel-status"></div>
+      </div>
+
+      <div id="dailyBox" class="daily">
+        <div class="daily-title">Daily Drop</div>
+        <div id="dailyRewardText" class="daily-reward">Claim today reward</div>
+        <button id="claimDaily" class="ghost">Claim Daily</button>
+      </div>
+
+      <div class="trait-grid">
+        <button class="trait" data-trait="swift">Trailblazer<br><span>+10% move speed</span></button>
+        <button class="trait" data-trait="bulwark">Bulwark<br><span>+20 max health</span></button>
+        <button class="trait" data-trait="sensor">Sensorist<br><span>Ping on reload</span></button>
+        <button class="trait" data-trait="medic">Medicall<br><span>Faster revive</span></button>
+      </div>
+
+      <div class="mode-grid">
+        <label for="modeSelect">Mode</label>
+        <select id="modeSelect">
+          <option value="classic">Classic</option>
+          <option value="blitz">Blitz</option>
+          <option value="duo">Duo</option>
+          <option value="squad">Squad</option>
+          <option value="vehicle">Vehicle Rush</option>
+          <option value="arena">MP Arena (Beta)</option>
+        </select>
+        <label for="mapSelect">Map</label>
+        <select id="mapSelect">
+          <option value="ridge">Ridgefront</option>
+          <option value="harbor">Harborline</option>
+          <option value="metro">Metro Grid</option>
+        </select>
+        <label class="checkbox">
+          <input id="mpToggle" type="checkbox" />
+          Multiplayer (Beta)
+        </label>
+      </div>
+
+      <button id="startBtn" class="start">Deploy</button>
+      <div class="tips">
+        <div><strong>Touch</strong>: left joystick move, right joystick aim/shoot</div>
+        <div><strong>Desktop</strong>: WASD move, mouse aim, click shoot, 1/2/3 equip, Q swap, R reload</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="topbar" class="topbar hidden">
+    <div class="brand">SP NET GAMERS <span>v1.0.1</span></div>
+    <div class="progress">
+      <div id="levelChip" class="chip">LVL 1</div>
+      <div class="xpbar"><div id="xpFill" class="xpfill"></div></div>
+    </div>
+    <div class="balance">
+      <div id="coinsChip" class="chip">SP Coins 0</div>
+      <div id="gemsChip" class="chip">SP Gems 0</div>
+      <div id="powerChip" class="chip hidden">Power +60%</div>
+    </div>
+    <div class="actions">
+      <button id="profileBtn" class="ghost small">Profile</button>
+      <button id="storeBtn" class="ghost small">Store</button>
+    </div>
+  </div>
+
+  <div id="killfeed" class="killfeed"></div>
+
+  <div id="panelProfile" class="panel hidden">
+    <div class="panel-card">
+      <h2>Profile</h2>
+      <div id="profileSummary" class="panel-text"></div>
+      <div class="panel-section">
+        <h3>Daily Missions</h3>
+        <div id="missionsList" class="panel-list"></div>
+      </div>
+      <div class="panel-section">
+        <h3>Battle Pass</h3>
+        <div id="battlePass" class="panel-text"></div>
+        <div id="battlePassTrack" class="panel-list"></div>
+      </div>
+      <div class="panel-section">
+        <h3>Inventory & Attachments</h3>
+        <div id="inventoryList" class="panel-list"></div>
+      </div>
+      <button id="claimDaily2" class="start small">Claim Daily</button>
+      <div id="dailyStatus" class="panel-status"></div>
+      <button id="closeProfile" class="ghost small">Close</button>
+    </div>
+  </div>
+
+  <div id="panelStore" class="panel hidden">
+    <div class="panel-card">
+      <h2>Store</h2>
+      <div id="storeList" class="panel-list"></div>
+      <div id="storeStatus" class="panel-status"></div>
+      <button id="closeStore" class="ghost small">Close</button>
+    </div>
+  </div>
+
+  <div id="summary" class="panel hidden">
+    <div class="panel-card">
+      <h2 id="summaryTitle">Match Complete</h2>
+      <div id="summaryStats" class="panel-text"></div>
+      <button id="summaryBtn" class="start">Return to Lobby</button>
+    </div>
+  </div>
+
+  <div id="warmup" class="panel hidden">
+    <div class="panel-card">
+      <h2>Warm-Up</h2>
+      <div id="warmupText" class="panel-text">Deploying...</div>
+      <button id="skipWarmup" class="ghost small">Skip Warm-Up</button>
+    </div>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <canvas id="game"></canvas>
+  <div id="hud" class="hud">
+    <div class="stat" id="health"></div>
+    <div class="stat" id="armor"></div>
+    <div class="stat" id="weapon"></div>
+    <div class="stat" id="ammo"></div>
+    <div class="stat" id="vehicle"></div>
+    <div class="stat" id="remain"></div>
+  </div>
+
+  <div id="actions" class="actions-panel">
+    <button id="actionHeal" class="ghost small">Heal</button>
+    <button id="actionSwap" class="ghost small">Swap</button>
+    <button id="actionCapture" class="ghost small">Capture</button>
+  </div>
+
+  <script src="game_play.js?v=20260315c"></script>
+  <script>
+    (function () {
+      function forceWarmupOff() {
+        try {
+          var warmup = document.getElementById("warmup");
+          if (warmup) warmup.classList.add("hidden");
+          if (window.GAME) {
+            window.GAME.warmupActive = false;
+            window.GAME.warmupTimer = 0;
+          }
+        } catch (e) {}
+        setTimeout(forceWarmupOff, 800);
+      }
+      forceWarmupOff();
+    })();
+  </script>
+</body>
+</html>
