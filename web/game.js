@@ -54,6 +54,8 @@ const hudVehicle = document.getElementById("vehicle");
 const hudRemain = document.getElementById("remain");
 const warmupPanel = document.getElementById("warmup");
 const warmupText = document.getElementById("warmupText");
+const skipWarmupBtn = document.getElementById("skipWarmup");
+const buildTag = document.getElementById("buildTag");
 const killfeed = document.getElementById("killfeed");
 const actionHeal = document.getElementById("actionHeal");
 const actionSwap = document.getElementById("actionSwap");
@@ -69,6 +71,7 @@ const wsParam = urlParams.get("ws");
 const AUTO_START = urlParams.get("autostart") === "1";
 const FORCE_OFFLINE = urlParams.get("offline") === "1";
 const SKIP_WARMUP = urlParams.get("nowarmup") === "1";
+const BUILD_ID = "2026-03-15.1";
 if (apiParam) localStorage.setItem("spnet_api", apiParam);
 if (wsParam) localStorage.setItem("spnet_ws", wsParam);
 
@@ -2214,6 +2217,11 @@ if (warmupPanel) {
     if (GAME.warmupActive) forceEndWarmup("Warm-up skipped");
   });
 }
+if (skipWarmupBtn) {
+  skipWarmupBtn.addEventListener("click", () => {
+    if (GAME.warmupActive) forceEndWarmup("Warm-up skipped");
+  });
+}
 
 window.addEventListener("keydown", (e) => {
   if (!GAME.warmupActive) return;
@@ -2235,6 +2243,7 @@ async function initUI() {
   updateProfilePanel();
   updateDailyUI();
   renderStore();
+  if (buildTag) buildTag.textContent = `Build ${BUILD_ID}`;
   if (authToken) await tryCloudProfile();
   if (AUTO_START) {
     if (mpToggle) mpToggle.checked = false;
