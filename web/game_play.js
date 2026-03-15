@@ -72,7 +72,8 @@ const AUTO_START = urlParams.get("autostart") === "1";
 const FORCE_OFFLINE = urlParams.get("offline") === "1";
 const SKIP_WARMUP = urlParams.get("nowarmup") === "1";
 const FORCE_SKIP_WARMUP = true;
-const BUILD_ID = "2026-03-15.3-play";
+const FORCE_AUTOSTART = true;
+const BUILD_ID = "2026-03-15.4-play";
 if (apiParam) localStorage.setItem("spnet_api", apiParam);
 if (wsParam) localStorage.setItem("spnet_ws", wsParam);
 
@@ -2271,7 +2272,7 @@ async function initUI() {
   renderStore();
   if (buildTag) buildTag.textContent = `Build ${BUILD_ID}`;
   if (authToken) await tryCloudProfile();
-  if (AUTO_START) {
+  if (FORCE_AUTOSTART || AUTO_START) {
     if (mpToggle) mpToggle.checked = false;
     setTimeout(() => {
       if (!GAME.running) startGame();
@@ -2283,3 +2284,6 @@ resize();
 setTraitButtons();
 initUI();
 render();
+setTimeout(() => {
+  if (!GAME.running) startGame();
+}, 300);

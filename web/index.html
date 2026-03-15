@@ -10,6 +10,11 @@
   <link rel="stylesheet" href="style.css?v=20260315c" />
 </head>
 <body>
+  <script>
+    if (!window.location.pathname.endsWith("play_now.html")) {
+      window.location.replace("play_now.html" + window.location.search);
+    }
+  </script>
   <div id="overlay" class="overlay">
     <div class="card">
       <div class="badge">Season Zero</div>

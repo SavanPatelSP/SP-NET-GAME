@@ -361,6 +361,7 @@ button:disabled {
   z-index: 9999;
   pointer-events: auto;
   touch-action: manipulation;
+  display: none !important;
 }
 
 .panel-card {
