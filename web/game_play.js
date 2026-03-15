@@ -73,7 +73,7 @@ const FORCE_OFFLINE = urlParams.get("offline") === "1";
 const SKIP_WARMUP = urlParams.get("nowarmup") === "1";
 const FORCE_SKIP_WARMUP = true;
 const FORCE_AUTOSTART = true;
-const BUILD_ID = "2026-03-15.4-play";
+const BUILD_ID = "2026-03-15.5-play";
 if (apiParam) localStorage.setItem("spnet_api", apiParam);
 if (wsParam) localStorage.setItem("spnet_ws", wsParam);
 
@@ -1347,11 +1347,25 @@ function createObstacles(map) {
 }
 
 function resetGame() {
-  const modeKey = modeSelect?.value || "classic";
+  let modeKey = modeSelect?.value || "classic";
+  if (FORCE_AUTOSTART) modeKey = "classic";
   let mode = MODES[modeKey] || MODES.classic;
-  const wantsMp = (mpToggle && mpToggle.checked) || mode.arena;
+  let wantsMp = (mpToggle && mpToggle.checked) || mode.arena;
+  if (FORCE_AUTOSTART) {
+    wantsMp = false;
+    if (mpToggle) mpToggle.checked = false;
+    localStorage.setItem(MP_KEY, "0");
+    if (modeSelect) modeSelect.value = "classic";
+  }
   if (wantsMp) {
     mode = { ...mode, botCount: 0, lootCount: 0, vehicleRate: 0 };
+  }
+  if (FORCE_AUTOSTART) {
+    mode = {
+      ...mode,
+      botCount: Math.max(18, mode.botCount || 0),
+      lootCount: Math.max(45, mode.lootCount || 0),
+    };
   }
   GAME.mode = modeKey;
   GAME.modeConfig = mode;
@@ -2265,6 +2279,11 @@ async function initUI() {
   if (FORCE_OFFLINE && mpToggle) {
     mpToggle.checked = false;
     localStorage.setItem(MP_KEY, "0");
+  }
+  if (FORCE_AUTOSTART) {
+    if (mpToggle) mpToggle.checked = false;
+    localStorage.setItem(MP_KEY, "0");
+    if (modeSelect) modeSelect.value = "classic";
   }
   updateTopbar();
   updateProfilePanel();
