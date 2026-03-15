@@ -106,7 +106,7 @@ const FF_SETTINGS = {
   damageFlash: 0.3,
 };
 const FORCE_SKIP_WARMUP = true;
-const BUILD_ID = "2026-03-15.10";
+const BUILD_ID = "2026-03-15.12";
 if (apiParam) localStorage.setItem("spnet_api", apiParam);
 if (wsParam) localStorage.setItem("spnet_ws", wsParam);
 
@@ -120,7 +120,7 @@ let allowAutoRestart = AUTO_RESTART;
 if (PANIC_MODE) document.body.classList.add("panic-mode");
 if (panicLobbyBtn && PANIC_MODE) {
   panicLobbyBtn.classList.add("big");
-  panicLobbyBtn.setAttribute("href", "index.html?panic=1&v=20260315s");
+  panicLobbyBtn.setAttribute("href", "index.html?panic=1&v=20260315t");
 }
 
 window.addEventListener("error", (e) => {
@@ -1798,6 +1798,9 @@ function endMatch(won) {
   GAME.paused = true;
 
   awardMatchRewards(won, GAME.player.kills).then((rewards) => {
+    document.body.classList.add("summary-open");
+    panelProfile.classList.add("hidden");
+    panelStore.classList.add("hidden");
     summaryTitle.textContent = won ? "Winner" : "Eliminated";
     summaryStats.textContent =
       `Kills: ${GAME.player.kills}\n` +
@@ -2121,6 +2124,7 @@ function setTraitButtons() {
 }
 
 async function startGame() {
+  document.body.classList.remove("summary-open");
   PROFILE.name = nameInput.value.trim() || PROFILE.name || "Player";
   await updateNameIfOnline();
   saveProfile();
@@ -2162,6 +2166,7 @@ function returnToLobby() {
   GAME.running = false;
   GAME.paused = false;
   summaryPanel.classList.add("hidden");
+  document.body.classList.remove("summary-open");
   if (warmupPanel) warmupPanel.classList.add("hidden");
   GAME.warmupActive = false;
   GAME.warmupTimer = 0;
@@ -2173,6 +2178,8 @@ function returnToLobby() {
     GAME.warmupTimeout = null;
   }
   stopMultiplayer();
+  panelProfile.classList.add("hidden");
+  panelStore.classList.add("hidden");
   overlay.classList.remove("hidden");
   render();
 }
@@ -2186,16 +2193,26 @@ function forceReloadToLobby() {
 }
 
 startBtn.addEventListener("click", startGame);
+if (summaryBtn) {
+  summaryBtn.addEventListener("click", (e) => {
+    e.preventDefault();
+    forceReloadToLobby();
+  });
+  summaryBtn.addEventListener("touchstart", (e) => {
+    e.preventDefault();
+    forceReloadToLobby();
+  }, { passive: false });
+}
 function manualReturnToLobby() {
   allowAutoRestart = false;
   showToast("Returning to lobby...");
   returnToLobby();
-  setTimeout(() => {
-    if (document.body.classList.contains("ingame")) {
+  if (PANIC_MODE) {
+    setTimeout(() => {
       showToast("Reloading lobby...");
       forceReloadToLobby();
-    }
-  }, 400);
+    }, 200);
+  }
 }
 
 summaryBtn.addEventListener("click", manualReturnToLobby);
