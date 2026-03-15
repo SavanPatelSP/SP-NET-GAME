@@ -113,6 +113,18 @@ body.panic-mode .killfeed {
   pointer-events: none;
 }
 
+body.summary-open #game,
+body.summary-open .bgmi-hud,
+body.summary-open .actions-panel,
+body.summary-open .killfeed {
+  pointer-events: none;
+}
+
+body.summary-open #summary {
+  z-index: 20;
+  pointer-events: auto;
+}
+
 .panic-lobby.big {
   top: auto;
   left: 50%;
@@ -306,6 +318,10 @@ h3 {
   border-radius: 12px;
   font-weight: 700;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
