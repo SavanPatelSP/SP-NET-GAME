@@ -6,8 +6,8 @@
   <title>SP NET GAMERS v1.0.1</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600&family=Space+Grotesk:wght@400;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=20260315c" />
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600&family=Space+Grotesk:wght@400;600&family=Bebas+Neue&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=20260315g" />
 </head>
 <body>
   <script>
@@ -153,6 +153,11 @@
   <div id="toast" class="toast hidden"></div>
 
   <canvas id="game"></canvas>
+  <div id="themeFrame" class="theme-frame" aria-hidden="true"></div>
+  <div id="promoBanner" class="promo-banner" aria-hidden="true">
+    <div class="promo-title">DUNESTORM FRONTLINE</div>
+    <div class="promo-sub">Discover relics, power, and hidden routes</div>
+  </div>
   <div id="hud" class="hud">
     <div class="stat" id="health"></div>
     <div class="stat" id="armor"></div>
@@ -168,7 +173,7 @@
     <button id="actionCapture" class="ghost small">Capture</button>
   </div>
 
-  <script src="game.js?v=20260315c"></script>
+  <script src="game.js?v=20260315g"></script>
   <script>
     (function () {
       function forceWarmupOff() {

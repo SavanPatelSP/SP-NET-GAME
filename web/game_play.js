@@ -73,7 +73,7 @@ const FORCE_OFFLINE = urlParams.get("offline") === "1";
 const SKIP_WARMUP = urlParams.get("nowarmup") === "1";
 const FORCE_SKIP_WARMUP = true;
 const FORCE_AUTOSTART = true;
-const BUILD_ID = "2026-03-15.6-play";
+const BUILD_ID = "2026-03-15.7-play";
 if (apiParam) localStorage.setItem("spnet_api", apiParam);
 if (wsParam) localStorage.setItem("spnet_ws", wsParam);
 
@@ -2112,6 +2112,7 @@ async function startGame() {
   GAME.running = true;
   GAME.lastTime = performance.now();
   overlay.classList.add("hidden");
+  document.body.classList.add("ingame");
   topbar.classList.remove("hidden");
   summaryPanel.classList.add("hidden");
   panelProfile.classList.add("hidden");
@@ -2128,6 +2129,7 @@ function returnToLobby() {
   GAME.warmupTimer = 0;
   GAME.warmupStartedAt = 0;
   GAME.warmupDuration = 0;
+  document.body.classList.remove("ingame");
   if (GAME.warmupTimeout) {
     clearTimeout(GAME.warmupTimeout);
     GAME.warmupTimeout = null;

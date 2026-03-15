@@ -1,8 +1,12 @@
 :root {
-  --bg: #0a0f1c;
-  --panel: rgba(12, 20, 36, 0.9);
-  --accent: #47d7a0;
-  --accent-2: #f0b356;
+  --bg: #2b2016;
+  --panel: rgba(23, 18, 12, 0.88);
+  --accent: #d9a24a;
+  --accent-2: #2fa9a3;
+  --sand: #e5c893;
+  --gold: #d19a3f;
+  --gold-bright: #f2d7a6;
+  --bronze: #8a6130;
   --danger: #ff6b6b;
   --text: #e9f1ff;
   --muted: rgba(233, 241, 255, 0.6);
@@ -22,6 +26,10 @@ html, body {
 
 body {
   position: relative;
+  background:
+    radial-gradient(circle at 20% 15%, rgba(233, 200, 147, 0.25), transparent 45%),
+    radial-gradient(circle at 85% 80%, rgba(47, 169, 163, 0.18), transparent 50%),
+    linear-gradient(160deg, rgba(46, 33, 21, 0.95), rgba(20, 15, 10, 0.98));
 }
 
 body::before,
@@ -59,6 +67,10 @@ body::after {
   display: block;
   position: relative;
   z-index: 1;
+}
+
+body.ingame #game {
+  filter: saturate(1.08) contrast(1.05);
 }
 
 .hidden { display: none; }
@@ -291,8 +303,8 @@ button:disabled {
   align-items: center;
   padding: 10px 14px;
   border-radius: 14px;
-  background: rgba(10, 16, 28, 0.75);
-  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(24, 18, 12, 0.78);
+  border: 1px solid rgba(209, 154, 63, 0.35);
   backdrop-filter: blur(8px);
   z-index: 6;
 }
@@ -336,8 +348,8 @@ button:disabled {
 .chip {
   padding: 6px 10px;
   border-radius: 999px;
-  background: rgba(255,255,255,0.08);
-  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(26, 18, 10, 0.55);
+  border: 1px solid rgba(209, 154, 63, 0.35);
   font-size: 12px;
 }
 
@@ -468,14 +480,14 @@ button:disabled {
 
 .stat {
   padding: 6px 8px;
-  background: rgba(0,0,0,0.45);
-  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(18, 12, 8, 0.6);
+  border: 1px solid rgba(209, 154, 63, 0.35);
   border-radius: 8px;
   font-size: 12px;
 }
 
 #ammo {
-  border-color: rgba(255, 214, 107, 0.5);
+  border-color: rgba(242, 215, 166, 0.7);
 }
 
 .toast {
@@ -483,8 +495,8 @@ button:disabled {
   left: 50%;
   bottom: 20px;
   transform: translateX(-50%);
-  background: rgba(10, 16, 28, 0.9);
-  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(22, 16, 10, 0.92);
+  border: 1px solid rgba(209, 154, 63, 0.35);
   border-radius: 999px;
   padding: 8px 14px;
   font-size: 12px;
@@ -504,8 +516,8 @@ button:disabled {
 .killfeed .entry {
   padding: 6px 8px;
   border-radius: 8px;
-  background: rgba(10, 16, 28, 0.8);
-  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(18, 12, 8, 0.85);
+  border: 1px solid rgba(209, 154, 63, 0.25);
   font-size: 11px;
   color: var(--muted);
 }
@@ -523,8 +535,81 @@ button:disabled {
 .actions-panel .ghost {
   min-width: 88px;
   text-align: center;
-  background: rgba(0,0,0,0.55);
-  border-color: rgba(255,255,255,0.18);
+  background: rgba(18, 12, 8, 0.65);
+  border-color: rgba(209, 154, 63, 0.35);
+}
+
+.theme-frame {
+  position: absolute;
+  inset: 18px;
+  border: 3px solid var(--gold);
+  border-radius: 16px;
+  box-shadow: 0 0 0 2px rgba(138, 97, 48, 0.45), 0 20px 60px rgba(0,0,0,0.35);
+  z-index: 4;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.theme-frame::before,
+.theme-frame::after {
+  content: "";
+  position: absolute;
+  width: 56px;
+  height: 56px;
+  border: 3px solid var(--gold-bright);
+  box-shadow: 0 0 0 1px rgba(138, 97, 48, 0.5) inset;
+}
+
+.theme-frame::before {
+  top: -10px;
+  left: -10px;
+  border-right: none;
+  border-bottom: none;
+}
+
+.theme-frame::after {
+  bottom: -10px;
+  right: -10px;
+  border-left: none;
+  border-top: none;
+}
+
+.promo-banner {
+  position: absolute;
+  left: 50%;
+  bottom: 16px;
+  transform: translateX(-50%);
+  width: min(92vw, 900px);
+  padding: 12px 18px;
+  border-radius: 12px;
+  background: linear-gradient(90deg, rgba(66, 45, 18, 0.92), rgba(28, 20, 12, 0.92));
+  border: 2px solid rgba(209, 154, 63, 0.55);
+  text-align: center;
+  z-index: 6;
+  opacity: 0;
+  pointer-events: none;
+  box-shadow: 0 16px 40px rgba(0,0,0,0.35);
+}
+
+.promo-title {
+  font-family: "Bebas Neue", "Oswald", sans-serif;
+  font-size: 38px;
+  letter-spacing: 2px;
+  color: var(--gold-bright);
+  text-transform: uppercase;
+  text-shadow: 0 4px 12px rgba(0,0,0,0.35);
+}
+
+.promo-sub {
+  font-size: 12px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: rgba(242, 215, 166, 0.85);
+}
+
+body.ingame .theme-frame,
+body.ingame .promo-banner {
+  opacity: 1;
 }
 
 @media (max-width: 720px) {

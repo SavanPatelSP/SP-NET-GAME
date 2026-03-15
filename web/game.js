@@ -2067,6 +2067,7 @@ async function startGame() {
   GAME.running = true;
   GAME.lastTime = performance.now();
   overlay.classList.add("hidden");
+  document.body.classList.add("ingame");
   topbar.classList.remove("hidden");
   summaryPanel.classList.add("hidden");
   panelProfile.classList.add("hidden");
@@ -2083,6 +2084,7 @@ function returnToLobby() {
   GAME.warmupTimer = 0;
   GAME.warmupStartedAt = 0;
   GAME.warmupDuration = 0;
+  document.body.classList.remove("ingame");
   if (GAME.warmupTimeout) {
     clearTimeout(GAME.warmupTimeout);
     GAME.warmupTimeout = null;
