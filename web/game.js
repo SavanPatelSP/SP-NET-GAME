@@ -188,6 +188,7 @@ const GAME = {
   warmupTimer: 0,
   warmupStartedAt: 0,
   warmupDuration: 0,
+  warmupTimeout: null,
   hitMarker: 0,
   damageFlash: 0,
   knockFlash: 0,
@@ -540,13 +541,38 @@ function sfxReload() { playTone(320, 0.08, "square", 0.08); }
 function sfxHeal() { playTone(640, 0.1, "sine", 0.1); }
 function sfxZone() { playTone(160, 0.12, "sine", 0.12); }
 
+function forceEndWarmup(reason = "Drop live - move fast!") {
+  GAME.warmupActive = false;
+  GAME.warmupTimer = 0;
+  if (GAME.warmupTimeout) {
+    clearTimeout(GAME.warmupTimeout);
+    GAME.warmupTimeout = null;
+  }
+  if (warmupPanel) warmupPanel.classList.add("hidden");
+  if (reason) {
+    showToast(reason);
+    sfxZone();
+  }
+}
+
 function startWarmup(seconds) {
+  if (GAME.warmupTimeout) {
+    clearTimeout(GAME.warmupTimeout);
+    GAME.warmupTimeout = null;
+  }
   GAME.warmupActive = true;
   GAME.warmupTimer = seconds;
   GAME.warmupDuration = seconds;
   GAME.warmupStartedAt = performance.now();
   if (warmupPanel) warmupPanel.classList.remove("hidden");
   if (warmupText) warmupText.textContent = `Deploying in ${Math.ceil(seconds)}...`;
+  if (seconds <= 0) {
+    forceEndWarmup();
+    return;
+  }
+  GAME.warmupTimeout = setTimeout(() => {
+    forceEndWarmup();
+  }, Math.max(0, (seconds + 1.5) * 1000));
 }
 
 function updateWarmup(dt) {
@@ -568,10 +594,7 @@ function updateWarmup(dt) {
   }
   if (warmupText) warmupText.textContent = `Deploying in ${Math.max(1, Math.ceil(GAME.warmupTimer))}...`;
   if (GAME.warmupTimer <= 0) {
-    GAME.warmupActive = false;
-    if (warmupPanel) warmupPanel.classList.add("hidden");
-    showToast("Drop live - move fast!");
-    sfxZone();
+    forceEndWarmup();
   }
 }
 
@@ -1332,6 +1355,10 @@ function resetGame() {
   GAME.paused = false;
   GAME.warmupStartedAt = 0;
   GAME.warmupDuration = 0;
+  if (GAME.warmupTimeout) {
+    clearTimeout(GAME.warmupTimeout);
+    GAME.warmupTimeout = null;
+  }
   GAME.warmupActive = false;
   GAME.warmupTimer = 0;
   GAME.hitMarker = 0;
@@ -2034,6 +2061,10 @@ function returnToLobby() {
   GAME.warmupTimer = 0;
   GAME.warmupStartedAt = 0;
   GAME.warmupDuration = 0;
+  if (GAME.warmupTimeout) {
+    clearTimeout(GAME.warmupTimeout);
+    GAME.warmupTimeout = null;
+  }
   stopMultiplayer();
   overlay.classList.remove("hidden");
   render();
@@ -2172,6 +2203,19 @@ canvas.addEventListener("touchend", (e) => {
   }
   e.preventDefault();
 }, { passive: false });
+
+if (warmupPanel) {
+  warmupPanel.addEventListener("click", () => {
+    if (GAME.warmupActive) forceEndWarmup("Warm-up skipped");
+  });
+}
+
+window.addEventListener("keydown", (e) => {
+  if (!GAME.warmupActive) return;
+  if (e.key === " " || e.key === "Enter") {
+    forceEndWarmup("Warm-up skipped");
+  }
+});
 
 async function initUI() {
   nameInput.value = PROFILE.name;
