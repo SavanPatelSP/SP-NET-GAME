@@ -60,6 +60,11 @@ const killfeed = document.getElementById("killfeed");
 const actionHeal = document.getElementById("actionHeal");
 const actionSwap = document.getElementById("actionSwap");
 const actionCapture = document.getElementById("actionCapture");
+const bgmiStatus = document.getElementById("bgmiStatus");
+const bgmiCompass = document.getElementById("bgmiCompass");
+const bgmiWeapon = document.getElementById("bgmiWeapon");
+const bgmiAmmo = document.getElementById("bgmiAmmo");
+const bgmiHealthFill = document.getElementById("bgmiHealthFill");
 
 let dpr = Math.max(1, window.devicePixelRatio || 1);
 let audioCtx = null;
@@ -1535,6 +1540,13 @@ function getAimAngle() {
   return aimAngle;
 }
 
+function formatCompass(angleRad) {
+  const deg = (angleRad * 180 / Math.PI + 360) % 360;
+  const dirs = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
+  const idx = Math.round(deg / 45) % 8;
+  return `${dirs[idx]} ${Math.round(deg)}`;
+}
+
 function getWantsFire() {
   return GAME.mouse.down || (GAME.touch.rightOrigin && Math.hypot(GAME.touch.rightDelta.x, GAME.touch.rightDelta.y) > 0.15);
 }
@@ -1973,6 +1985,19 @@ function render() {
   const modeLabel = MODES[GAME.mode]?.name || "Classic";
   const mapLabel = MAPS[GAME.map]?.name || "Ridgefront";
   hudRemain.textContent = `Remaining: ${GAME.remaining}  Kills: ${GAME.player.kills}  | ${modeLabel} @ ${mapLabel}`;
+
+  if (bgmiStatus) bgmiStatus.textContent = `Alive ${GAME.remaining} | Kills ${GAME.player.kills}`;
+  if (bgmiCompass) bgmiCompass.textContent = formatCompass(getAimAngle());
+  if (bgmiWeapon) bgmiWeapon.textContent = GAME.player.weapon.id;
+  if (bgmiAmmo) {
+    bgmiAmmo.textContent = GAME.player.reloadTimer > 0
+      ? `Reload ${GAME.player.reloadTimer.toFixed(1)}s`
+      : `${GAME.player.ammoInMag} / ${GAME.player.ammoReserve}`;
+  }
+  if (bgmiHealthFill) {
+    const hpPct = GAME.player.maxHealth > 0 ? (GAME.player.health / GAME.player.maxHealth) : 0;
+    bgmiHealthFill.style.width = `${Math.max(0, Math.min(1, hpPct)) * 100}%`;
+  }
 
   if (!GAME.player.alive) {
     ctx.fillStyle = "rgba(0,0,0,0.45)";

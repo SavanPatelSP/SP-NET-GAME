@@ -612,6 +612,149 @@ body.ingame .promo-banner {
   opacity: 1;
 }
 
+body.ingame .topbar,
+body.ingame #hud {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.bgmi-hud {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  display: none;
+  pointer-events: none;
+  font-family: "Oswald", "Space Grotesk", sans-serif;
+}
+
+body.ingame .bgmi-hud {
+  display: block;
+}
+
+.bgmi-top {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: rgba(18, 18, 18, 0.45);
+  border: 1px solid rgba(255,255,255,0.25);
+  backdrop-filter: blur(6px);
+}
+
+.bgmi-status {
+  font-size: 12px;
+  color: rgba(255,255,255,0.8);
+}
+
+.bgmi-compass {
+  font-size: 13px;
+  letter-spacing: 2px;
+  color: rgba(255,255,255,0.9);
+}
+
+.bgmi-minimap {
+  position: absolute;
+  right: 12px;
+  top: 72px;
+  width: 140px;
+  height: 140px;
+  border: 2px solid rgba(255,255,255,0.65);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+  pointer-events: none;
+}
+
+.bgmi-bottom {
+  position: absolute;
+  left: 50%;
+  bottom: 18px;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: rgba(8, 8, 10, 0.6);
+  border: 1px solid rgba(255,255,255,0.25);
+  box-shadow: 0 10px 26px rgba(0,0,0,0.35);
+}
+
+.bgmi-weapon {
+  font-size: 14px;
+  letter-spacing: 0.5px;
+  color: rgba(255,255,255,0.95);
+}
+
+.bgmi-ammo {
+  font-size: 14px;
+  color: rgba(255,255,255,0.85);
+}
+
+.bgmi-health {
+  width: 120px;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.35);
+  overflow: hidden;
+}
+
+.bgmi-health-fill {
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(90deg, #ffd25a, #ff6b5f);
+}
+
+.bgmi-crosshair {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 18px;
+  height: 18px;
+  margin-left: -9px;
+  margin-top: -9px;
+  border: 1px solid rgba(255,255,255,0.6);
+  border-radius: 50%;
+}
+
+.bgmi-crosshair::before,
+.bgmi-crosshair::after {
+  content: "";
+  position: absolute;
+  background: rgba(255,255,255,0.6);
+}
+
+.bgmi-crosshair::before {
+  width: 18px;
+  height: 1px;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.bgmi-crosshair::after {
+  height: 18px;
+  width: 1px;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+body.ingame .actions-panel .ghost {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.4);
+  background: rgba(0,0,0,0.55);
+  color: rgba(255,255,255,0.85);
+  font-size: 11px;
+}
+
 @media (max-width: 720px) {
   .topbar {
     grid-template-columns: 1fr;

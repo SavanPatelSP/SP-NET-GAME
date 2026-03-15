@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600&family=Space+Grotesk:wght@400;600&family=Bebas+Neue&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=20260315h" />
+  <link rel="stylesheet" href="style.css?v=20260315i" />
 </head>
 <body>
   <script>
@@ -173,7 +173,23 @@
     <button id="actionCapture" class="ghost small">Capture</button>
   </div>
 
-  <script src="game.js?v=20260315h"></script>
+  <div id="bgmiHud" class="bgmi-hud" aria-hidden="true">
+    <div class="bgmi-top">
+      <div id="bgmiStatus" class="bgmi-status">Alive 0 | Kills 0</div>
+      <div id="bgmiCompass" class="bgmi-compass">N 0</div>
+    </div>
+    <div id="bgmiMiniFrame" class="bgmi-minimap"></div>
+    <div class="bgmi-bottom">
+      <div id="bgmiWeapon" class="bgmi-weapon">Weapon</div>
+      <div id="bgmiAmmo" class="bgmi-ammo">0 / 0</div>
+      <div class="bgmi-health">
+        <div id="bgmiHealthFill" class="bgmi-health-fill"></div>
+      </div>
+    </div>
+    <div id="bgmiCrosshair" class="bgmi-crosshair"></div>
+  </div>
+
+  <script src="game.js?v=20260315i"></script>
   <script>
     (function () {
       function forceWarmupOff() {
