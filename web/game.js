@@ -238,6 +238,9 @@ const NET = {
   lastStateAt: 0,
   inputSeq: 0,
   connectTimer: null,
+  connectedAt: 0,
+  lastWarmupAt: 0,
+  warmupFallbackShown: false,
   serverUrl: localStorage.getItem("spnet_ws") || DEFAULT_WS,
 };
 
@@ -548,8 +551,15 @@ function startWarmup(seconds) {
 
 function updateWarmup(dt) {
   if (!GAME.warmupActive) return;
-  if (!GAME.multiplayer || !NET.connected) {
+  const now = performance.now();
+  const warmupAnchor = NET.lastWarmupAt || NET.connectedAt || now;
+  const serverStalled = GAME.multiplayer && NET.connected && (now - warmupAnchor) > 2500;
+  if (!GAME.multiplayer || !NET.connected || serverStalled) {
     GAME.warmupTimer = Math.max(0, GAME.warmupTimer - dt);
+    if (serverStalled && !NET.warmupFallbackShown) {
+      NET.warmupFallbackShown = true;
+      showToast("Matchmaking slow - starting local drop.");
+    }
   }
   const elapsed = (performance.now() - (GAME.warmupStartedAt || performance.now())) / 1000;
   const maxWarmup = (GAME.warmupDuration || WARMUP_TIME) + 1.5;
@@ -671,6 +681,9 @@ function startMultiplayer() {
     clearTimeout(NET.connectTimer);
     NET.connectTimer = null;
   }
+  NET.connectedAt = 0;
+  NET.lastWarmupAt = 0;
+  NET.warmupFallbackShown = false;
 
   try {
     const ws = new WebSocket(NET.serverUrl);
@@ -687,6 +700,7 @@ function startMultiplayer() {
     }, 3500);
     ws.onopen = () => {
       NET.connected = true;
+      NET.connectedAt = performance.now();
       if (NET.connectTimer) {
         clearTimeout(NET.connectTimer);
         NET.connectTimer = null;
@@ -740,6 +754,9 @@ function stopMultiplayer() {
     clearTimeout(NET.connectTimer);
     NET.connectTimer = null;
   }
+  NET.connectedAt = 0;
+  NET.lastWarmupAt = 0;
+  NET.warmupFallbackShown = false;
 }
 
 function handleNetMessage(msg) {
@@ -753,6 +770,8 @@ function handleNetMessage(msg) {
     const wasActive = GAME.warmupActive;
     GAME.warmupActive = msg.remaining > 0;
     GAME.warmupTimer = msg.remaining || 0;
+    NET.lastWarmupAt = performance.now();
+    NET.warmupFallbackShown = false;
     if (GAME.warmupActive && !wasActive) {
       GAME.warmupStartedAt = performance.now();
       GAME.warmupDuration = msg.remaining || WARMUP_TIME;
