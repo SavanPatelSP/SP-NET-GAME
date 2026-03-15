@@ -558,6 +558,7 @@ function forceEndWarmup(reason = "Drop live - move fast!") {
     sfxZone();
   }
 }
+window.forceEndWarmup = forceEndWarmup;
 
 function startWarmup(seconds) {
   if (GAME.warmupTimeout) {
@@ -2216,11 +2217,19 @@ if (warmupPanel) {
   warmupPanel.addEventListener("click", () => {
     if (GAME.warmupActive) forceEndWarmup("Warm-up skipped");
   });
+  warmupPanel.addEventListener("touchstart", (e) => {
+    e.preventDefault();
+    if (GAME.warmupActive) forceEndWarmup("Warm-up skipped");
+  }, { passive: false });
 }
 if (skipWarmupBtn) {
   skipWarmupBtn.addEventListener("click", () => {
     if (GAME.warmupActive) forceEndWarmup("Warm-up skipped");
   });
+  skipWarmupBtn.addEventListener("touchstart", (e) => {
+    e.preventDefault();
+    if (GAME.warmupActive) forceEndWarmup("Warm-up skipped");
+  }, { passive: false });
 }
 
 window.addEventListener("keydown", (e) => {

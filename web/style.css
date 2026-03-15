@@ -354,6 +354,13 @@ button:disabled {
   justify-content: center;
   background: rgba(5, 8, 15, 0.72);
   z-index: 12;
+  pointer-events: auto;
+}
+
+#warmup {
+  z-index: 9999;
+  pointer-events: auto;
+  touch-action: manipulation;
 }
 
 .panel-card {
