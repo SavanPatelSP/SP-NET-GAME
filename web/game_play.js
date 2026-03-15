@@ -65,6 +65,7 @@ const bgmiCompass = document.getElementById("bgmiCompass");
 const bgmiWeapon = document.getElementById("bgmiWeapon");
 const bgmiAmmo = document.getElementById("bgmiAmmo");
 const bgmiHealthFill = document.getElementById("bgmiHealthFill");
+const panicLobbyBtn = document.getElementById("panicLobby");
 
 let dpr = Math.max(1, window.devicePixelRatio || 1);
 let audioCtx = null;
@@ -91,6 +92,7 @@ const wsParam = urlParams.get("ws");
 const AUTO_START = urlParams.get("autostart") === "1";
 const FORCE_OFFLINE = urlParams.get("offline") === "1";
 const SKIP_WARMUP = urlParams.get("nowarmup") === "1";
+const AUTO_RESTART = urlParams.get("loop") === "1";
 const FORCE_SKIP_WARMUP = true;
 const FORCE_AUTOSTART = true;
 const LOGIC_PROFILE = "ff";
@@ -104,7 +106,7 @@ const FF_SETTINGS = {
   hitMarker: 0.18,
   damageFlash: 0.3,
 };
-const BUILD_ID = "2026-03-15.12-play";
+const BUILD_ID = "2026-03-15.13-play";
 if (apiParam) localStorage.setItem("spnet_api", apiParam);
 if (wsParam) localStorage.setItem("spnet_ws", wsParam);
 
@@ -113,6 +115,7 @@ const DEFAULT_API = IS_LOCAL ? "http://localhost:8787" : `${window.location.prot
 const API_BASE = localStorage.getItem("spnet_api") || DEFAULT_API;
 let authToken = localStorage.getItem("spnet_token") || "";
 let onlineMode = false;
+let allowAutoRestart = AUTO_RESTART;
 
 window.addEventListener("error", (e) => {
   const msg = e?.message || "Unknown error";
@@ -1832,12 +1835,13 @@ function endMatch(won) {
   GAME.paused = true;
 
   awardMatchRewards(won, GAME.player.kills).then((rewards) => {
+    allowAutoRestart = AUTO_RESTART;
     summaryTitle.textContent = won ? "Winner" : "Eliminated";
     summaryStats.textContent =
       `Kills: ${GAME.player.kills}\n` +
       `Rewards: +${rewards.xpEarned} XP, +${rewards.coinsEarned} Coins${won ? `, +${rewards.gemsEarned} Gems` : ""}`;
     summaryPanel.classList.remove("hidden");
-    if (FORCE_AUTOSTART) {
+    if (allowAutoRestart) {
       setTimeout(() => {
         if (summaryPanel && !summaryPanel.classList.contains("hidden")) {
           returnToLobby();
@@ -2227,21 +2231,33 @@ function returnToLobby() {
 }
 
 startBtn.addEventListener("click", startGame);
-summaryBtn.addEventListener("click", returnToLobby);
-summaryPanel.addEventListener("click", () => {
+
+function manualReturnToLobby() {
+  allowAutoRestart = false;
   returnToLobby();
-  if (FORCE_AUTOSTART) setTimeout(() => startGame(), 200);
-});
+}
+
+summaryBtn.addEventListener("click", manualReturnToLobby);
+summaryPanel.addEventListener("click", manualReturnToLobby);
 summaryPanel.addEventListener("touchstart", (e) => {
   e.preventDefault();
-  returnToLobby();
-  if (FORCE_AUTOSTART) setTimeout(() => startGame(), 200);
+  manualReturnToLobby();
 }, { passive: false });
+if (panicLobbyBtn) {
+  panicLobbyBtn.addEventListener("click", manualReturnToLobby);
+  panicLobbyBtn.addEventListener("touchstart", (e) => {
+    e.preventDefault();
+    manualReturnToLobby();
+  }, { passive: false });
+}
 window.addEventListener("keydown", (e) => {
-  if (!summaryPanel || summaryPanel.classList.contains("hidden")) return;
+  if (e.target && ["INPUT", "TEXTAREA"].includes(e.target.tagName)) return;
+  if (!summaryPanel || summaryPanel.classList.contains("hidden")) {
+    if (e.key === "Escape") manualReturnToLobby();
+    return;
+  }
   if (e.key === "Enter" || e.key === " ") {
-    returnToLobby();
-    if (FORCE_AUTOSTART) setTimeout(() => startGame(), 200);
+    manualReturnToLobby();
   }
 });
 

@@ -65,6 +65,7 @@ const bgmiCompass = document.getElementById("bgmiCompass");
 const bgmiWeapon = document.getElementById("bgmiWeapon");
 const bgmiAmmo = document.getElementById("bgmiAmmo");
 const bgmiHealthFill = document.getElementById("bgmiHealthFill");
+const panicLobbyBtn = document.getElementById("panicLobby");
 
 let dpr = Math.max(1, window.devicePixelRatio || 1);
 let audioCtx = null;
@@ -91,6 +92,7 @@ const wsParam = urlParams.get("ws");
 const AUTO_START = urlParams.get("autostart") === "1";
 const FORCE_OFFLINE = urlParams.get("offline") === "1";
 const SKIP_WARMUP = urlParams.get("nowarmup") === "1";
+const AUTO_RESTART = urlParams.get("loop") === "1";
 const LOGIC_PROFILE = "ff";
 const FF_SETTINGS = {
   moveMult: 1.08,
@@ -103,7 +105,7 @@ const FF_SETTINGS = {
   damageFlash: 0.3,
 };
 const FORCE_SKIP_WARMUP = true;
-const BUILD_ID = "2026-03-15.4";
+const BUILD_ID = "2026-03-15.5";
 if (apiParam) localStorage.setItem("spnet_api", apiParam);
 if (wsParam) localStorage.setItem("spnet_ws", wsParam);
 
@@ -112,6 +114,7 @@ const DEFAULT_API = IS_LOCAL ? "http://localhost:8787" : `${window.location.prot
 const API_BASE = localStorage.getItem("spnet_api") || DEFAULT_API;
 let authToken = localStorage.getItem("spnet_token") || "";
 let onlineMode = false;
+let allowAutoRestart = AUTO_RESTART;
 
 window.addEventListener("error", (e) => {
   const msg = e?.message || "Unknown error";
@@ -2168,7 +2171,30 @@ function returnToLobby() {
 }
 
 startBtn.addEventListener("click", startGame);
-summaryBtn.addEventListener("click", returnToLobby);
+function manualReturnToLobby() {
+  allowAutoRestart = false;
+  returnToLobby();
+}
+
+summaryBtn.addEventListener("click", manualReturnToLobby);
+summaryPanel.addEventListener("click", manualReturnToLobby);
+summaryPanel.addEventListener("touchstart", (e) => {
+  e.preventDefault();
+  manualReturnToLobby();
+}, { passive: false });
+if (panicLobbyBtn) {
+  panicLobbyBtn.addEventListener("click", manualReturnToLobby);
+  panicLobbyBtn.addEventListener("touchstart", (e) => {
+    e.preventDefault();
+    manualReturnToLobby();
+  }, { passive: false });
+}
+window.addEventListener("keydown", (e) => {
+  if (e.target && ["INPUT", "TEXTAREA"].includes(e.target.tagName)) return;
+  if (e.key === "Escape") {
+    manualReturnToLobby();
+  }
+});
 
 loginBtn.addEventListener("click", login);
 registerBtn.addEventListener("click", register);
