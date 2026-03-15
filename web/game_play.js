@@ -93,7 +93,18 @@ const FORCE_OFFLINE = urlParams.get("offline") === "1";
 const SKIP_WARMUP = urlParams.get("nowarmup") === "1";
 const FORCE_SKIP_WARMUP = true;
 const FORCE_AUTOSTART = true;
-const BUILD_ID = "2026-03-15.10-play";
+const LOGIC_PROFILE = "ff";
+const FF_SETTINGS = {
+  moveMult: 1.08,
+  zoneScale: 0.72,
+  zoneDamage: 18,
+  lootMult: 1.15,
+  reloadMult: 0.92,
+  spreadMult: 0.9,
+  hitMarker: 0.18,
+  damageFlash: 0.3,
+};
+const BUILD_ID = "2026-03-15.12-play";
 if (apiParam) localStorage.setItem("spnet_api", apiParam);
 if (wsParam) localStorage.setItem("spnet_ws", wsParam);
 
@@ -285,9 +296,11 @@ const PHASES = [
 ];
 
 function buildPhases(scale = 1) {
+  const logicScale = LOGIC_PROFILE === "ff" ? FF_SETTINGS.zoneScale : 1;
+  const finalScale = scale * logicScale;
   return PHASES.map((p) => ({
-    wait: Math.max(0, p.wait * scale),
-    shrink: Math.max(1, p.shrink * scale),
+    wait: Math.max(0, p.wait * finalScale),
+    shrink: Math.max(1, p.shrink * finalScale),
     radius: p.radius,
   }));
 }
@@ -1106,7 +1119,13 @@ function applyAttachments(weapon, attachments) {
 
 function buildWeapon(baseWeapon) {
   const attachments = PROFILE.equippedAttachments || [];
-  return applyAttachments({ ...baseWeapon, baseId: baseWeapon.id }, attachments);
+  const built = applyAttachments({ ...baseWeapon, baseId: baseWeapon.id }, attachments);
+  if (LOGIC_PROFILE === "ff") {
+    built.reload *= FF_SETTINGS.reloadMult;
+    built.fireRate *= 1.05;
+    built.spread *= FF_SETTINGS.spreadMult;
+  }
+  return built;
 }
 
 function renderInventory() {
@@ -1244,6 +1263,8 @@ async function awardMatchRewards(won, kills) {
 function createPlayer() {
   const trait = TRAITS[GAME.trait];
   const starterWeapon = buildWeapon(WEAPONS[0]);
+  const baseHp = LOGIC_PROFILE === "ff" ? 120 : 100;
+  const speedMult = LOGIC_PROFILE === "ff" ? FF_SETTINGS.moveMult : 1;
   return {
     id: "player",
     x: GAME.zone.center.x + rand(-120, 120),
@@ -1251,9 +1272,9 @@ function createPlayer() {
     vx: 0,
     vy: 0,
     r: 14,
-    speed: 210 * trait.speedMult,
-    health: 100 + trait.maxHealthAdd,
-    maxHealth: 100 + trait.maxHealthAdd,
+    speed: 210 * trait.speedMult * speedMult,
+    health: baseHp + trait.maxHealthAdd,
+    maxHealth: baseHp + trait.maxHealthAdd,
     armor: 0,
     weapon: starterWeapon,
     weaponSlots: [starterWeapon, null],
@@ -1274,6 +1295,8 @@ function createPlayer() {
 
 function createBot(i, player) {
   const weapon = { ...WEAPONS[Math.floor(rand(0, WEAPONS.length))] };
+  const speedMult = LOGIC_PROFILE === "ff" ? FF_SETTINGS.moveMult : 1;
+  const baseHp = LOGIC_PROFILE === "ff" ? 110 : 90;
   const center = GAME.zone?.center || WORLD_CENTER;
   const baseRadius = Math.max(240, (GAME.zone?.currentRadius || 1000) - 120);
   let x = center.x;
@@ -1296,9 +1319,9 @@ function createBot(i, player) {
     vx: 0,
     vy: 0,
     r: 13,
-    speed: rand(170, 200),
-    health: rand(90, 120),
-    maxHealth: 110,
+    speed: rand(170, 200) * speedMult,
+    health: rand(baseHp - 10, baseHp + 10),
+    maxHealth: baseHp + 10,
     armor: Math.random() < 0.4 ? 25 : 0,
     weapon,
     cooldown: 0,
@@ -1404,10 +1427,18 @@ function resetGame() {
       lootCount: Math.max(45, mode.lootCount || 0),
     };
   }
+  if (LOGIC_PROFILE === "ff" && !wantsMp) {
+    mode = {
+      ...mode,
+      lootCount: Math.round((mode.lootCount || 0) * FF_SETTINGS.lootMult),
+      vehicleRate: Math.min(0.25, (mode.vehicleRate || 0) * 1.15),
+    };
+  }
   GAME.mode = modeKey;
   GAME.modeConfig = mode;
   GAME.phases = buildPhases(mode.phaseScale || 1);
-  GAME.zoneDamage = mode.zoneDamage || 14;
+  const baseZone = mode.zoneDamage || 14;
+  GAME.zoneDamage = LOGIC_PROFILE === "ff" ? Math.max(baseZone, FF_SETTINGS.zoneDamage) : baseZone;
 
   const mapKey = mapSelect?.value || "ridge";
   const map = MAPS[mapKey] || MAPS.ridge;
@@ -1738,6 +1769,8 @@ function updateBots(dt, live) {
 }
 
 function updateBullets(dt) {
+  const hitStrength = LOGIC_PROFILE === "ff" ? FF_SETTINGS.hitMarker : 0.12;
+  const damageStrength = LOGIC_PROFILE === "ff" ? FF_SETTINGS.damageFlash : 0.25;
   for (const bullet of GAME.bullets) {
     bullet.x += bullet.vx * dt;
     bullet.y += bullet.vy * dt;
@@ -1762,11 +1795,11 @@ function updateBullets(dt) {
         t.health -= dmg;
         b.life = 0;
         if (t.id === "player") {
-          GAME.damageFlash = Math.max(GAME.damageFlash, 0.25);
+          GAME.damageFlash = Math.max(GAME.damageFlash, damageStrength);
           GAME.cameraShake = Math.max(GAME.cameraShake, 6);
         }
         if (b.owner === "player") {
-          GAME.hitMarker = Math.max(GAME.hitMarker, 0.12);
+          GAME.hitMarker = Math.max(GAME.hitMarker, hitStrength);
           sfxHit();
         }
         if (t.health <= 0) {

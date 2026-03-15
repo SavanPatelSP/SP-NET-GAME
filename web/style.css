@@ -1,12 +1,11 @@
 :root {
-  --bg: #2b2016;
-  --panel: rgba(23, 18, 12, 0.88);
-  --accent: #d9a24a;
-  --accent-2: #2fa9a3;
-  --sand: #e5c893;
-  --gold: #d19a3f;
-  --gold-bright: #f2d7a6;
-  --bronze: #8a6130;
+  --bg: #0f141b;
+  --panel: rgba(16, 21, 28, 0.92);
+  --accent: #4dd2ff;
+  --accent-2: #f2c94c;
+  --gold: #4dd2ff;
+  --gold-bright: #dce7f2;
+  --bronze: #203040;
   --danger: #ff6b6b;
   --text: #e9f1ff;
   --muted: rgba(233, 241, 255, 0.6);
@@ -27,9 +26,9 @@ html, body {
 body {
   position: relative;
   background:
-    radial-gradient(circle at 20% 15%, rgba(233, 200, 147, 0.25), transparent 45%),
-    radial-gradient(circle at 85% 80%, rgba(47, 169, 163, 0.18), transparent 50%),
-    linear-gradient(160deg, rgba(46, 33, 21, 0.95), rgba(20, 15, 10, 0.98));
+    radial-gradient(circle at 20% 15%, rgba(77, 210, 255, 0.18), transparent 45%),
+    radial-gradient(circle at 85% 80%, rgba(242, 201, 76, 0.12), transparent 50%),
+    linear-gradient(160deg, rgba(16, 22, 30, 0.98), rgba(10, 14, 20, 0.98));
 }
 
 body::before,
@@ -516,10 +515,10 @@ button:disabled {
 .killfeed .entry {
   padding: 6px 8px;
   border-radius: 8px;
-  background: rgba(18, 12, 8, 0.85);
-  border: 1px solid rgba(209, 154, 63, 0.25);
+  background: rgba(10, 14, 20, 0.75);
+  border: 1px solid rgba(255,255,255,0.2);
   font-size: 11px;
-  color: var(--muted);
+  color: rgba(255,255,255,0.78);
 }
 
 .actions-panel {
@@ -535,8 +534,8 @@ button:disabled {
 .actions-panel .ghost {
   min-width: 88px;
   text-align: center;
-  background: rgba(18, 12, 8, 0.65);
-  border-color: rgba(209, 154, 63, 0.35);
+  background: rgba(12, 16, 22, 0.65);
+  border-color: rgba(220, 231, 242, 0.25);
 }
 
 .theme-frame {
@@ -548,6 +547,7 @@ button:disabled {
   z-index: 4;
   opacity: 0;
   pointer-events: none;
+  display: none;
 }
 
 .theme-frame::before,
@@ -588,6 +588,7 @@ button:disabled {
   z-index: 6;
   opacity: 0;
   pointer-events: none;
+  display: none;
   box-shadow: 0 16px 40px rgba(0,0,0,0.35);
 }
 
@@ -609,7 +610,7 @@ button:disabled {
 
 body.ingame .theme-frame,
 body.ingame .promo-banner {
-  opacity: 1;
+  opacity: 0;
 }
 
 body.ingame .topbar,
