@@ -106,7 +106,7 @@ const FF_SETTINGS = {
   damageFlash: 0.3,
 };
 const FORCE_SKIP_WARMUP = true;
-const BUILD_ID = "2026-03-15.13";
+const BUILD_ID = "2026-03-15.14";
 if (apiParam) localStorage.setItem("spnet_api", apiParam);
 if (wsParam) localStorage.setItem("spnet_ws", wsParam);
 
@@ -120,7 +120,7 @@ let allowAutoRestart = AUTO_RESTART;
 if (PANIC_MODE) document.body.classList.add("panic-mode");
 if (panicLobbyBtn && PANIC_MODE) {
   panicLobbyBtn.classList.add("big");
-  panicLobbyBtn.setAttribute("href", "index.html?panic=1&v=20260315u");
+  panicLobbyBtn.setAttribute("href", "index.html?panic=1&v=20260315v");
 }
 
 window.addEventListener("error", (e) => {
@@ -2194,20 +2194,15 @@ function forceReloadToLobby() {
   const next = new URL("index.html", window.location.href);
   next.searchParams.set("autostart", "0");
   next.searchParams.set("panic", "1");
-  next.searchParams.set("v", "20260315u");
-  window.location.href = next.toString();
+  next.searchParams.set("v", "20260315v");
+  window.location.replace(next.toString());
 }
 
 startBtn.addEventListener("click", startGame);
 if (summaryBtn) {
-  summaryBtn.addEventListener("click", (e) => {
-    e.preventDefault();
+  summaryBtn.addEventListener("click", () => {
     forceReloadToLobby();
   });
-  summaryBtn.addEventListener("touchstart", (e) => {
-    e.preventDefault();
-    forceReloadToLobby();
-  }, { passive: false });
 }
 function manualReturnToLobby() {
   allowAutoRestart = false;
@@ -2223,10 +2218,6 @@ function manualReturnToLobby() {
 
 summaryBtn.addEventListener("click", manualReturnToLobby);
 summaryPanel.addEventListener("click", manualReturnToLobby);
-summaryPanel.addEventListener("touchstart", (e) => {
-  e.preventDefault();
-  manualReturnToLobby();
-}, { passive: false });
 if (panicLobbyBtn) {
   panicLobbyBtn.addEventListener("click", manualReturnToLobby);
 }
