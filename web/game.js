@@ -1944,8 +1944,17 @@ function loop(ts) {
   const dt = Math.min(0.05, (ts - GAME.lastTime) / 1000 || 0);
   GAME.lastTime = ts;
 
-  if (!GAME.paused) update(dt);
-  render();
+  try {
+    if (!GAME.paused) update(dt);
+    render();
+  } catch (e) {
+    GAME.running = false;
+    const msg = e?.message || "Unknown error";
+    if (warmupText) warmupText.textContent = `Error: ${msg}`;
+    showToast(`Error: ${msg}`);
+    console.error(e);
+    return;
+  }
 
   requestAnimationFrame(loop);
 }
