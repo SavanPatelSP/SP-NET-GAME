@@ -71,7 +71,8 @@ const wsParam = urlParams.get("ws");
 const AUTO_START = urlParams.get("autostart") === "1";
 const FORCE_OFFLINE = urlParams.get("offline") === "1";
 const SKIP_WARMUP = urlParams.get("nowarmup") === "1";
-const BUILD_ID = "2026-03-15.2";
+const FORCE_SKIP_WARMUP = true;
+const BUILD_ID = "2026-03-15.3";
 if (apiParam) localStorage.setItem("spnet_api", apiParam);
 if (wsParam) localStorage.setItem("spnet_ws", wsParam);
 
@@ -561,6 +562,10 @@ function forceEndWarmup(reason = "Drop live - move fast!") {
 window.forceEndWarmup = forceEndWarmup;
 
 function startWarmup(seconds) {
+  if (FORCE_SKIP_WARMUP || SKIP_WARMUP) {
+    forceEndWarmup("Warm-up skipped");
+    return;
+  }
   if (GAME.warmupTimeout) {
     clearTimeout(GAME.warmupTimeout);
     GAME.warmupTimeout = null;
@@ -582,6 +587,10 @@ function startWarmup(seconds) {
 
 function updateWarmup(dt) {
   if (!GAME.warmupActive) return;
+  if (FORCE_SKIP_WARMUP || SKIP_WARMUP) {
+    forceEndWarmup("Warm-up skipped");
+    return;
+  }
   const now = performance.now();
   const warmupAnchor = NET.lastWarmupAt || NET.connectedAt || now;
   const serverStalled = GAME.multiplayer && NET.connected && (now - warmupAnchor) > 2500;
@@ -795,6 +804,10 @@ function handleNetMessage(msg) {
     return;
   }
   if (msg.type === "warmup") {
+    if (FORCE_SKIP_WARMUP || SKIP_WARMUP) {
+      forceEndWarmup("");
+      return;
+    }
     const wasActive = GAME.warmupActive;
     GAME.warmupActive = msg.remaining > 0;
     GAME.warmupTimer = msg.remaining || 0;
@@ -2041,7 +2054,7 @@ async function startGame() {
   if (audioCtx && audioCtx.state === "suspended") {
     audioCtx.resume();
   }
-  if (SKIP_WARMUP) {
+  if (FORCE_SKIP_WARMUP || SKIP_WARMUP) {
     forceEndWarmup("Warm-up skipped");
   } else {
     startWarmup(WARMUP_TIME);
