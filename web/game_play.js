@@ -107,7 +107,7 @@ const FF_SETTINGS = {
   hitMarker: 0.18,
   damageFlash: 0.3,
 };
-const BUILD_ID = "2026-03-15.15-play";
+const BUILD_ID = "2026-03-15.16-play";
 if (apiParam) localStorage.setItem("spnet_api", apiParam);
 if (wsParam) localStorage.setItem("spnet_ws", wsParam);
 
@@ -119,7 +119,10 @@ let onlineMode = false;
 let allowAutoRestart = AUTO_RESTART;
 
 if (PANIC_MODE) document.body.classList.add("panic-mode");
-if (panicLobbyBtn && PANIC_MODE) panicLobbyBtn.classList.add("big");
+if (panicLobbyBtn && PANIC_MODE) {
+  panicLobbyBtn.classList.add("big");
+  panicLobbyBtn.setAttribute("href", "index.html?panic=1");
+}
 
 window.addEventListener("error", (e) => {
   const msg = e?.message || "Unknown error";
@@ -2264,10 +2267,6 @@ summaryPanel.addEventListener("touchstart", (e) => {
 }, { passive: false });
 if (panicLobbyBtn) {
   panicLobbyBtn.addEventListener("click", manualReturnToLobby);
-  panicLobbyBtn.addEventListener("touchstart", (e) => {
-    e.preventDefault();
-    manualReturnToLobby();
-  }, { passive: false });
 }
 window.addEventListener("keydown", (e) => {
   if (e.target && ["INPUT", "TEXTAREA"].includes(e.target.tagName)) return;
