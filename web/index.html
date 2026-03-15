@@ -7,14 +7,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600&family=Space+Grotesk:wght@400;600&family=Bebas+Neue&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=20260315q" />
+  <link rel="stylesheet" href="style.css?v=20260315r" />
 </head>
 <body>
-  <script>
-    if (!window.location.pathname.endsWith("play_now.html")) {
-      window.location.replace("play_now.html" + window.location.search);
-    }
-  </script>
   <div id="overlay" class="overlay">
     <div class="card">
       <div class="badge">Season Zero</div>
@@ -153,7 +148,7 @@
   <div id="toast" class="toast hidden"></div>
 
   <canvas id="game"></canvas>
-  <a id="panicLobby" class="panic-lobby" href="index.html?panic=1">Return to Lobby</a>
+  <a id="panicLobby" class="panic-lobby" href="index.html?panic=1&v=20260315r" onclick="location.href='index.html?panic=1&v=20260315r'; return false;">Return to Lobby</a>
   <div id="themeFrame" class="theme-frame" aria-hidden="true"></div>
   <div id="promoBanner" class="promo-banner" aria-hidden="true">
     <div class="promo-title">DUNESTORM FRONTLINE</div>
@@ -190,7 +185,7 @@
     <div id="bgmiCrosshair" class="bgmi-crosshair"></div>
   </div>
 
-  <script src="game.js?v=20260315q"></script>
+  <script src="game.js?v=20260315r"></script>
   <script>
     (function () {
       function forceWarmupOff() {

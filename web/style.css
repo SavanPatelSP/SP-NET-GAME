@@ -106,6 +106,13 @@ body.panic-mode .panic-lobby {
   gap: 6px;
 }
 
+body.panic-mode #game,
+body.panic-mode .bgmi-hud,
+body.panic-mode .actions-panel,
+body.panic-mode .killfeed {
+  pointer-events: none;
+}
+
 .panic-lobby.big {
   top: auto;
   left: 50%;
