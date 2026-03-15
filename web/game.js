@@ -65,6 +65,21 @@ let dpr = Math.max(1, window.devicePixelRatio || 1);
 let audioCtx = null;
 let audioMaster = null;
 
+const localStorage = (() => {
+  try {
+    const s = window.localStorage;
+    s.setItem("__spnet", "1");
+    s.removeItem("__spnet");
+    return s;
+  } catch (e) {
+    return {
+      getItem: () => null,
+      setItem: () => {},
+      removeItem: () => {},
+    };
+  }
+})();
+
 const urlParams = new URLSearchParams(window.location.search);
 const apiParam = urlParams.get("api");
 const wsParam = urlParams.get("ws");

@@ -65,6 +65,21 @@ let dpr = Math.max(1, window.devicePixelRatio || 1);
 let audioCtx = null;
 let audioMaster = null;
 
+const localStorage = (() => {
+  try {
+    const s = window.localStorage;
+    s.setItem("__spnet", "1");
+    s.removeItem("__spnet");
+    return s;
+  } catch (e) {
+    return {
+      getItem: () => null,
+      setItem: () => {},
+      removeItem: () => {},
+    };
+  }
+})();
+
 const urlParams = new URLSearchParams(window.location.search);
 const apiParam = urlParams.get("api");
 const wsParam = urlParams.get("ws");
@@ -73,7 +88,7 @@ const FORCE_OFFLINE = urlParams.get("offline") === "1";
 const SKIP_WARMUP = urlParams.get("nowarmup") === "1";
 const FORCE_SKIP_WARMUP = true;
 const FORCE_AUTOSTART = true;
-const BUILD_ID = "2026-03-15.7-play";
+const BUILD_ID = "2026-03-15.8-play";
 if (apiParam) localStorage.setItem("spnet_api", apiParam);
 if (wsParam) localStorage.setItem("spnet_ws", wsParam);
 
@@ -2334,3 +2349,7 @@ render();
 setTimeout(() => {
   if (!GAME.running) startGame();
 }, 300);
+
+window.addEventListener("pointerdown", () => {
+  if (!GAME.running) startGame();
+}, { once: true });
