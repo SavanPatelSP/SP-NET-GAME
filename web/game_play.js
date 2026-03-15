@@ -107,7 +107,7 @@ const FF_SETTINGS = {
   hitMarker: 0.18,
   damageFlash: 0.3,
 };
-const BUILD_ID = "2026-03-15.25-play";
+const BUILD_ID = "2026-03-15.26-play";
 if (apiParam) localStorage.setItem("spnet_api", apiParam);
 if (wsParam) localStorage.setItem("spnet_ws", wsParam);
 
@@ -121,7 +121,7 @@ let allowAutoRestart = AUTO_RESTART;
 if (PANIC_MODE) document.body.classList.add("panic-mode");
 if (panicLobbyBtn && PANIC_MODE) {
   panicLobbyBtn.classList.add("big");
-  panicLobbyBtn.setAttribute("href", "index.html?panic=1&v=20260315y");
+  panicLobbyBtn.setAttribute("href", "lobby.html?panic=1&v=20260315z");
 }
 
 window.addEventListener("error", (e) => {
@@ -2251,10 +2251,10 @@ function returnToLobby() {
 }
 
 function forceReloadToLobby() {
-  const next = new URL("index.html", window.location.href);
+  const next = new URL("lobby.html", window.location.href);
   next.searchParams.set("autostart", "0");
   next.searchParams.set("panic", "1");
-  next.searchParams.set("v", "20260315y");
+  next.searchParams.set("v", "20260315z");
   window.location.replace(next.toString());
 }
 
