@@ -77,6 +77,18 @@ const API_BASE = localStorage.getItem("spnet_api") || DEFAULT_API;
 let authToken = localStorage.getItem("spnet_token") || "";
 let onlineMode = false;
 
+window.addEventListener("error", (e) => {
+  const msg = e?.message || "Unknown error";
+  showToast(`Error: ${msg}`);
+  if (warmupText) warmupText.textContent = `Error: ${msg}`;
+});
+
+window.addEventListener("unhandledrejection", (e) => {
+  const msg = e?.reason?.message || e?.reason || "Unhandled promise error";
+  showToast(`Error: ${msg}`);
+  if (warmupText) warmupText.textContent = `Error: ${msg}`;
+});
+
 const WORLD = { w: 2000, h: 2000 };
 const WORLD_CENTER = { x: WORLD.w / 2, y: WORLD.h / 2 };
 
