@@ -106,7 +106,7 @@ const FF_SETTINGS = {
   damageFlash: 0.3,
 };
 const FORCE_SKIP_WARMUP = true;
-const BUILD_ID = "2026-03-15.15";
+const BUILD_ID = "2026-03-15.16";
 if (apiParam) localStorage.setItem("spnet_api", apiParam);
 if (wsParam) localStorage.setItem("spnet_ws", wsParam);
 
@@ -120,7 +120,7 @@ let allowAutoRestart = AUTO_RESTART;
 if (PANIC_MODE) document.body.classList.add("panic-mode");
 if (panicLobbyBtn && PANIC_MODE) {
   panicLobbyBtn.classList.add("big");
-  panicLobbyBtn.setAttribute("href", "index.html?panic=1&v=20260315w");
+  panicLobbyBtn.setAttribute("href", "index.html?panic=1&v=20260315x");
 }
 
 window.addEventListener("error", (e) => {
@@ -2194,54 +2194,42 @@ function forceReloadToLobby() {
   const next = new URL("index.html", window.location.href);
   next.searchParams.set("autostart", "0");
   next.searchParams.set("panic", "1");
-  next.searchParams.set("v", "20260315w");
+  next.searchParams.set("v", "20260315x");
   window.location.replace(next.toString());
 }
 
 startBtn.addEventListener("click", startGame);
-if (summaryBtn) {
-  summaryBtn.addEventListener("click", () => {
-    forceReloadToLobby();
-  });
-}
+if (summaryBtn) summaryBtn.addEventListener("click", forceReloadToLobby);
+
 function manualReturnToLobby() {
-  allowAutoRestart = false;
-  showToast("Returning to lobby...");
-  returnToLobby();
-  if (PANIC_MODE) {
-    setTimeout(() => {
-      showToast("Reloading lobby...");
-      forceReloadToLobby();
-    }, 200);
-  }
+  forceReloadToLobby();
 }
 
-summaryBtn.addEventListener("click", manualReturnToLobby);
-summaryPanel.addEventListener("click", manualReturnToLobby);
+summaryPanel.addEventListener("click", forceReloadToLobby);
 if (panicLobbyBtn) {
-  panicLobbyBtn.addEventListener("click", manualReturnToLobby);
+  panicLobbyBtn.addEventListener("click", forceReloadToLobby);
 }
 window.addEventListener("keydown", (e) => {
   if (e.target && ["INPUT", "TEXTAREA"].includes(e.target.tagName)) return;
   if (e.key === "Escape") {
-    manualReturnToLobby();
+    forceReloadToLobby();
   }
 });
 
 document.addEventListener("dblclick", () => {
   if (!GAME.running) return;
-  manualReturnToLobby();
+  forceReloadToLobby();
 });
 
 document.addEventListener("touchstart", (e) => {
   if (!GAME.running) return;
   if (e.touches && e.touches.length >= 2) {
     e.preventDefault();
-    manualReturnToLobby();
+    forceReloadToLobby();
   }
 }, { passive: false });
 
-window.forceLobby = manualReturnToLobby;
+window.forceLobby = forceReloadToLobby;
 window.forceReloadToLobby = forceReloadToLobby;
 
 loginBtn.addEventListener("click", login);
