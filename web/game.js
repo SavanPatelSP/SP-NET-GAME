@@ -68,6 +68,7 @@ const apiParam = urlParams.get("api");
 const wsParam = urlParams.get("ws");
 const AUTO_START = urlParams.get("autostart") === "1";
 const FORCE_OFFLINE = urlParams.get("offline") === "1";
+const SKIP_WARMUP = urlParams.get("nowarmup") === "1";
 if (apiParam) localStorage.setItem("spnet_api", apiParam);
 if (wsParam) localStorage.setItem("spnet_ws", wsParam);
 
@@ -2036,7 +2037,11 @@ async function startGame() {
   if (audioCtx && audioCtx.state === "suspended") {
     audioCtx.resume();
   }
-  startWarmup(WARMUP_TIME);
+  if (SKIP_WARMUP) {
+    forceEndWarmup("Warm-up skipped");
+  } else {
+    startWarmup(WARMUP_TIME);
+  }
   if (wantsMp) {
     startMultiplayer();
   } else {
